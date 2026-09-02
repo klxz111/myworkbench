@@ -1,0 +1,3 @@
+# Keep deepwork state readable by OpenCode even if gitignored parented
+!.slim/deepwork/
+!.slim/deepwork/**
