@@ -39,7 +39,7 @@ export function syncMarkdownToSqlite(): SyncResult {
   const db = initDb();
   const root = getEntityRoot();
 
-  if (!fs.existsSync(root)) {
+  if (!fs.existsSync(/* turbopackIgnore: true */ root)) {
     return { scanned: 0, created: 0, updated: 0, deleted: 0, skipped: 0 };
   }
 
@@ -52,7 +52,7 @@ export function syncMarkdownToSqlite(): SyncResult {
       skipped: 0,
     };
 
-    const entityTypeDirs = fs.readdirSync(root, { withFileTypes: true });
+    const entityTypeDirs = fs.readdirSync(/* turbopackIgnore: true */ root, { withFileTypes: true });
     const seenPaths = new Set<string>();
 
     for (const dir of entityTypeDirs) {

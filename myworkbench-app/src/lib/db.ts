@@ -10,8 +10,8 @@ const DB_PATH = path.join(
 
 function ensureDbDir() {
   const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(/* turbopackIgnore: true */ dir)) {
+    fs.mkdirSync(/* turbopackIgnore: true */ dir, { recursive: true });
   }
 }
 
@@ -38,44 +38,55 @@ export function initDb() {
       updated_at TEXT DEFAULT (datetime('now')),
       file_path TEXT NOT NULL UNIQUE,
       content_hash TEXT,
-      content TEXT DEFAULT ''
-    );
+      content TEXT
+    )
+  `);
 
+  db.exec(`
     CREATE TABLE IF NOT EXISTS relations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      from_id TEXT NOT NULL,
-      to_id TEXT NOT NULL,
-      relation_type TEXT NOT NULL,
-      weight REAL DEFAULT 1.0,
-      metadata TEXT DEFAULT '{}',
+      from_type TEXT NOT NULL,
+      from_slug TEXT NOT NULL,
+      to_type TEXT NOT NULL,
+      to_slug TEXT NOT NULL,
+      relation TEXT NOT NULL,
       created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (from_id) REFERENCES entities(id) ON DELETE CASCADE,
-      FOREIGN KEY (to_id) REFERENCES entities(id) ON DELETE CASCADE,
-      CHECK(from_id != to_id)
-    );
+      UNIQUE(from_type, from_slug, to_type, to_slug, relation)
+    )
+  `);
 
+  db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS entities_fts USING fts5(
-      title, content,
-      content='entities',
-      content_rowid='rowid'
-    );
+      id,
+      title,
+      tags,
+      content,
+      content='',
+      tokenize='porter'
+    )
+  `);
 
+  db.exec(`
     CREATE TRIGGER IF NOT EXISTS entities_ai AFTER INSERT ON entities BEGIN
-      INSERT INTO entities_fts(rowid, title, content)
-      VALUES (new.rowid, new.title, new.content);
-    END;
+      INSERT INTO entities_fts(rowid, id, title, tags, content)
+      VALUES (NEW.rowid, NEW.id, NEW.title, NEW.tags, NEW.content);
+    END
+  `);
 
+  db.exec(`
     CREATE TRIGGER IF NOT EXISTS entities_ad AFTER DELETE ON entities BEGIN
-      INSERT INTO entities_fts(entities_fts, rowid, title, content)
-      VALUES ('delete', old.rowid, old.title, old.content);
-    END;
+      INSERT INTO entities_fts(entities_fts, rowid, id, title, tags, content)
+      VALUES ('delete', OLD.rowid, OLD.id, OLD.title, OLD.tags, OLD.content);
+    END
+  `);
 
+  db.exec(`
     CREATE TRIGGER IF NOT EXISTS entities_au AFTER UPDATE ON entities BEGIN
-      INSERT INTO entities_fts(entities_fts, rowid, title, content)
-      VALUES ('delete', old.rowid, old.title, old.content);
-      INSERT INTO entities_fts(rowid, title, content)
-      VALUES (new.rowid, new.title, new.content);
-    END;
+      INSERT INTO entities_fts(entities_fts, rowid, id, title, tags, content)
+      VALUES ('delete', OLD.rowid, OLD.id, OLD.title, OLD.tags, OLD.content);
+      INSERT INTO entities_fts(rowid, id, title, tags, content)
+      VALUES (NEW.rowid, NEW.id, NEW.title, NEW.tags, NEW.content);
+    END
   `);
 
   return db;

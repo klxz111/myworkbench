@@ -10,6 +10,7 @@ export type EntityType =
   | 'experiment'
   | 'person'
   | 'evidence'
+  | 'belief'
   | 'opportunity'
   | 'radar'
   | 'capital';
@@ -22,6 +23,7 @@ export const ENTITY_DIRS: Record<EntityType, string> = {
   experiment: 'experiments',
   person: 'people',
   evidence: 'evidence',
+  belief: 'beliefs',
   opportunity: 'opportunities',
   radar: 'radar',
   capital: 'capital',
@@ -56,13 +58,13 @@ export function getEntityRoot(): string {
   }
   const cwd = process.cwd();
   if (cwd.endsWith('myworkbench-app')) {
-    return path.join(cwd, '..', 'entities');
+    return path.join(/* turbopackIgnore: true */ cwd, '..', 'entities');
   }
-  return path.join(cwd, 'entities');
+  return path.join(/* turbopackIgnore: true */ cwd, 'entities');
 }
 
 export function getEntityDir(type: EntityType): string {
-  return path.join(getEntityRoot(), ENTITY_DIRS[type]);
+  return path.join(/* turbopackIgnore: true */ getEntityRoot(), ENTITY_DIRS[type]);
 }
 
 export function resolveEntityPath(type: EntityType, slug: string): string {
@@ -71,9 +73,9 @@ export function resolveEntityPath(type: EntityType, slug: string): string {
 
 export function readEntity(type: EntityType, slug: string): EntityFile | null {
   const filePath = resolveEntityPath(type, slug);
-  if (!fs.existsSync(filePath)) return null;
+  if (!fs.existsSync(/* turbopackIgnore: true */ filePath)) return null;
 
-  const raw = fs.readFileSync(filePath, 'utf-8');
+  const raw = fs.readFileSync(/* turbopackIgnore: true */ filePath, 'utf-8');
   const parsed = matter(raw);
 
   return {
@@ -94,12 +96,12 @@ export function writeEntity(
 ): EntityFile {
   const filePath = resolveEntityPath(type, slug);
   const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(/* turbopackIgnore: true */ dir)) {
+    fs.mkdirSync(/* turbopackIgnore: true */ dir, { recursive: true });
   }
 
   const file = matter.stringify(content, data);
-  fs.writeFileSync(filePath, file, 'utf-8');
+  fs.writeFileSync(/* turbopackIgnore: true */ filePath, file, 'utf-8');
 
   return {
     id: data.id,
@@ -113,16 +115,16 @@ export function writeEntity(
 
 export function deleteEntity(type: EntityType, slug: string): boolean {
   const filePath = resolveEntityPath(type, slug);
-  if (!fs.existsSync(filePath)) return false;
-  fs.unlinkSync(filePath);
+  if (!fs.existsSync(/* turbopackIgnore: true */ filePath)) return false;
+  fs.unlinkSync(/* turbopackIgnore: true */ filePath);
   return true;
 }
 
 export function listEntities(type: EntityType): EntityFile[] {
   const dir = getEntityDir(type);
-  if (!fs.existsSync(dir)) return [];
+  if (!fs.existsSync(/* turbopackIgnore: true */ dir)) return [];
 
-  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md'));
+  const files = fs.readdirSync(/* turbopackIgnore: true */ dir).filter((f) => f.endsWith('.md'));
   return files
     .map((f) => {
       const slug = f.replace(/\.md$/, '');

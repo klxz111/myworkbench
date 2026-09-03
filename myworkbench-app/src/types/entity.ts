@@ -95,6 +95,14 @@ export interface EvidenceEntity extends BaseEntity {
   linked_beliefs?: string[];
 }
 
+export interface BeliefEntity extends BaseEntity {
+  type: 'belief';
+  description?: string;
+  linked_evidence?: string[];
+  linked_decisions?: string[];
+  confidence?: 'high' | 'medium' | 'low';
+}
+
 export interface OpportunityEntity extends BaseEntity {
   type: 'opportunity';
   category?:
@@ -172,6 +180,7 @@ export type Entity =
   | ExperimentEntity
   | PersonEntity
   | EvidenceEntity
+  | BeliefEntity
   | OpportunityEntity
   | RadarEntity
   | CapitalEntity;
