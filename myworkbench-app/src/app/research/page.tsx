@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { ResearchClient } from './ResearchClient';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,12 @@ export default function ResearchPage() {
             Research topics, identity, and evidence
           </p>
         </div>
+        <Link
+          href="/research/new"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          New Research
+        </Link>
       </div>
       <Suspense fallback={<div className="text-gray-500">Loading research...</div>}>
         <ResearchClient />
