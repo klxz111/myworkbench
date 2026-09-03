@@ -121,6 +121,8 @@ export function syncMarkdownToSqlite(): SyncResult {
       result.deleted = toDelete.length;
     }
 
+    buildRelations();
+
     return result;
   })();
 }
@@ -166,4 +168,59 @@ export function createEntity(
   }
 
   return entity;
+}
+
+export function buildRelations(): number {
+  const db = initDb();
+  const root = getEntityRoot();
+  if (!fs.existsSync(/* turbopackIgnore: true */ root)) return 0;
+
+  const entityTypeDirs = fs.readdirSync(/* turbopackIgnore: true */ root, { withFileTypes: true });
+  let count = 0;
+
+  for (const dir of entityTypeDirs) {
+    if (!dir.isDirectory()) continue;
+    const type = DIR_TO_TYPE[dir.name];
+    if (!type) continue;
+    const entities = listEntities(type);
+
+    for (const entity of entities) {
+      const fm = entity.frontmatter;
+      const relations: { target: string; relation: string }[] = [];
+
+      if (fm.linked_evidence && Array.isArray(fm.linked_evidence)) {
+        for (const target of fm.linked_evidence) {
+          relations.push({ target, relation: 'supports' });
+        }
+      }
+      if (fm.linked_beliefs && Array.isArray(fm.linked_beliefs)) {
+        for (const target of fm.linked_beliefs) {
+          relations.push({ target, relation: 'informs' });
+        }
+      }
+      if (fm.linked_decisions && Array.isArray(fm.linked_decisions)) {
+        for (const target of fm.linked_decisions) {
+          relations.push({ target, relation: 'drives' });
+        }
+      }
+      if (fm.linked_experiments && Array.isArray(fm.linked_experiments)) {
+        for (const target of fm.linked_experiments) {
+          relations.push({ target, relation: 'includes' });
+        }
+      }
+
+      for (const rel of relations) {
+        try {
+          db.prepare(
+            `INSERT OR IGNORE INTO relations (from_id, to_id, relation) VALUES (?, ?, ?)`
+          ).run(entity.id, rel.target, rel.relation);
+          count++;
+        } catch {
+          // skip invalid relations
+        }
+      }
+    }
+  }
+
+  return count;
 }

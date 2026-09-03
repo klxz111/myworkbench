@@ -45,13 +45,11 @@ export function initDb() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS relations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      from_type TEXT NOT NULL,
-      from_slug TEXT NOT NULL,
-      to_type TEXT NOT NULL,
-      to_slug TEXT NOT NULL,
+      from_id TEXT NOT NULL,
+      to_id TEXT NOT NULL,
       relation TEXT NOT NULL,
       created_at TEXT DEFAULT (datetime('now')),
-      UNIQUE(from_type, from_slug, to_type, to_slug, relation)
+      UNIQUE(from_id, to_id, relation)
     )
   `);
 
@@ -90,4 +88,34 @@ export function initDb() {
   `);
 
   return db;
+}
+
+export interface GraphNode {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relation: string;
+}
+
+export function getEvidenceChain(): { nodes: GraphNode[]; edges: GraphEdge[] } {
+  const db = initDb();
+  const entities = db.prepare('SELECT id, type, title, status FROM entities').all() as GraphNode[];
+  const relations = db.prepare('SELECT from_id, to_id, relation FROM relations').all() as { from_id: string; to_id: string; relation: string }[];
+
+  const nodes = entities.map((e) => ({ ...e }));
+  const edges = relations.map((r, i) => ({
+    id: `e-${i}`,
+    source: r.from_id,
+    target: r.to_id,
+    relation: r.relation,
+  }));
+
+  return { nodes, edges };
 }

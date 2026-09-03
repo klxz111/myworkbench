@@ -11,6 +11,7 @@ const navItems = [
   { href: '/belief', label: 'BELIEF' },
   { href: '/projects', label: 'PROJECTS' },
   { href: '/people', label: 'PEOPLE' },
+  { href: '/graph', label: 'GRAPH' },
 ];
 
 export function Navigation() {
