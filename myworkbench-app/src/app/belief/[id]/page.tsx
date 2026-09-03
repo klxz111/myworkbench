@@ -3,11 +3,12 @@ import { BeliefDetailClient } from './BeliefDetailClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function BeliefDetailPage({
+export default async function BeliefDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -21,7 +22,7 @@ export default function BeliefDetailPage({
         </div>
       </div>
       <Suspense fallback={<div className="text-gray-500">Loading belief...</div>}>
-        <BeliefDetailClient id={params.id} />
+        <BeliefDetailClient id={id} />
       </Suspense>
     </div>
   );

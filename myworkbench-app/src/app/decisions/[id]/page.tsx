@@ -3,11 +3,12 @@ import { DecisionDetailClient } from './DecisionDetailClient';
 
 export const dynamic = 'force-dynamic';
 
-export default function DecisionDetailPage({
+export default async function DecisionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -21,7 +22,7 @@ export default function DecisionDetailPage({
         </div>
       </div>
       <Suspense fallback={<div className="text-gray-500">Loading decision...</div>}>
-        <DecisionDetailClient id={params.id} />
+        <DecisionDetailClient id={id} />
       </Suspense>
     </div>
   );
