@@ -13,7 +13,8 @@ export type EntityType =
   | 'belief'
   | 'opportunity'
   | 'radar'
-  | 'capital';
+  | 'capital'
+  | 'profile';
 
 export const ENTITY_DIRS: Record<EntityType, string> = {
   strategy: 'strategy',
@@ -27,6 +28,7 @@ export const ENTITY_DIRS: Record<EntityType, string> = {
   opportunity: 'opportunities',
   radar: 'radar',
   capital: 'capital',
+  profile: 'profile',
 };
 
 export interface EntityFrontmatter {

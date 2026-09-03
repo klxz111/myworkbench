@@ -5,13 +5,11 @@ import Link from 'next/link';
 const navItems = [
   { href: '/', label: 'HOME' },
   { href: '/strategy', label: 'STRATEGY' },
-  { href: '/decisions', label: 'DECISIONS' },
   { href: '/research', label: 'RESEARCH' },
-  { href: '/evidence', label: 'EVIDENCE' },
-  { href: '/belief', label: 'BELIEF' },
-  { href: '/projects', label: 'PROJECTS' },
-  { href: '/people', label: 'PEOPLE' },
-  { href: '/graph', label: 'GRAPH' },
+  { href: '/decisions', label: 'DECISIONS' },
+  { href: '/radar', label: 'RADAR' },
+  { href: '/people', label: 'NETWORK' },
+  { href: '/profile', label: 'PROFILE' },
 ];
 
 export function Navigation() {

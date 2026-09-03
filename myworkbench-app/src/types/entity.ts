@@ -172,6 +172,18 @@ export interface CapitalEntity extends BaseEntity {
   period_end?: string;
 }
 
+export interface ProfileEntity extends BaseEntity {
+  type: 'profile';
+  versions?: Record<string, {
+    title: string;
+    summary: string;
+    highlights: string[];
+    target_audience: string;
+  }>;
+  compiled_from?: string[];
+  last_compiled?: string;
+}
+
 export type Entity =
   | StrategyEntity
   | ResearchEntity
@@ -183,4 +195,5 @@ export type Entity =
   | BeliefEntity
   | OpportunityEntity
   | RadarEntity
-  | CapitalEntity;
+  | CapitalEntity
+  | ProfileEntity;

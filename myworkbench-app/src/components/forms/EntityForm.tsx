@@ -54,13 +54,6 @@ const TYPE_SPECIFIC_FIELDS: Record<string, Array<{ key: string; label: string; t
     { key: 'start_date', label: 'Start Date', type: 'text' },
     { key: 'end_date', label: 'End Date', type: 'text' },
   ],
-  experiment: [
-    { key: 'hypothesis', label: 'Hypothesis', type: 'textarea' },
-    { key: 'setup', label: 'Setup', type: 'textarea' },
-    { key: 'result', label: 'Result', type: 'textarea' },
-    { key: 'failure_mode', label: 'Failure Mode', type: 'textarea' },
-    { key: 'interpretation', label: 'Interpretation', type: 'textarea' },
-  ],
   research: [
     { key: 'identity', label: 'Research Identity', type: 'textarea' },
     { key: 'core_questions', label: 'Core Questions', type: 'textarea' },
@@ -69,6 +62,37 @@ const TYPE_SPECIFIC_FIELDS: Record<string, Array<{ key: string; label: string; t
     { key: 'organization', label: 'Organization', type: 'text' },
     { key: 'role', label: 'Role', type: 'text' },
     { key: 'relationship_strength', label: 'Relationship Strength', type: 'select', options: ['strong', 'medium', 'weak'] },
+  ],
+  opportunity: [
+    { key: 'category', label: 'Category', type: 'select', options: ['research', 'internship', 'scholarship', 'fellowship', 'phd', 'postdoc', 'company', 'lab', 'advisor', 'oss', 'startup', 'conference'] },
+    { key: 'strategic_fit', label: 'Strategic Fit (1-10)', type: 'text' },
+    { key: 'research_fit', label: 'Research Fit (1-10)', type: 'text' },
+    { key: 'option_value', label: 'Option Value', type: 'textarea' },
+    { key: 'cost', label: 'Cost', type: 'text' },
+    { key: 'risk', label: 'Risk', type: 'text' },
+    { key: 'timing', label: 'Timing', type: 'text' },
+    { key: 'deadline', label: 'Deadline', type: 'text' },
+  ],
+  experiment: [
+    { key: 'hypothesis', label: 'Hypothesis', type: 'textarea' },
+    { key: 'setup', label: 'Setup', type: 'textarea' },
+    { key: 'result', label: 'Result', type: 'textarea' },
+    { key: 'failure_mode', label: 'Failure Mode', type: 'textarea' },
+    { key: 'interpretation', label: 'Interpretation', type: 'textarea' },
+    { key: 'follow_up', label: 'Follow-up', type: 'textarea' },
+  ],
+  radar: [
+    { key: 'category', label: 'Category', type: 'select', options: ['ai_research', 'frontier_lab', 'company', 'university', 'hardware', 'ml_systems', 'robotics', 'funding', 'policy', 'immigration', 'ecosystem'] },
+    { key: 'signal_strength', label: 'Signal Strength', type: 'select', options: ['high', 'medium', 'low'] },
+    { key: 'impact', label: 'Impact', type: 'textarea' },
+  ],
+  capital: [
+    { key: 'period_start', label: 'Period Start', type: 'text' },
+    { key: 'period_end', label: 'Period End', type: 'text' },
+  ],
+  profile: [
+    { key: 'versions', label: 'Versions (JSON)', type: 'textarea' },
+    { key: 'compiled_from', label: 'Compiled From', type: 'text' },
   ],
 };
 
