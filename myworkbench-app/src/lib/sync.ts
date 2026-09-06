@@ -220,6 +220,16 @@ export function buildRelations(): number {
           expected.push({ from: entity.id, to: String(target), relation: 'includes' });
         }
       }
+      if (fm.linked_people && Array.isArray(fm.linked_people)) {
+        for (const target of fm.linked_people) {
+          expected.push({ from: entity.id, to: String(target), relation: 'has_member' });
+        }
+      }
+      if (fm.linked_opportunities && Array.isArray(fm.linked_opportunities)) {
+        for (const target of fm.linked_opportunities) {
+          expected.push({ from: entity.id, to: String(target), relation: 'has_opportunity' });
+        }
+      }
 
       if (fm.relations && Array.isArray(fm.relations)) {
         for (const raw of fm.relations) {
