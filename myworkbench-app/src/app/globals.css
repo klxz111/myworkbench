@@ -1,8 +1,18 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "highlight.js/styles/github.css";
+
+/* 主题切换使用 class 策略（.dark），由 layout 内联脚本与 lib/theme.ts 控制 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +22,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 代码高亮：基础为 github 浅色，暗色用紧凑覆盖（避免双主题全局冲突） */
+.dark .hljs { color: #e6e6e6; background: transparent; }
+.dark .hljs-comment, .dark .hljs-quote { color: #7c848f; font-style: italic; }
+.dark .hljs-keyword, .dark .hljs-selector-tag, .dark .hljs-literal, .dark .hljs-section, .dark .hljs-doctag, .dark .hljs-type, .dark .hljs-name, .dark .hljs-strong { color: #c678dd; }
+.dark .hljs-string, .dark .hljs-title, .dark .hljs-attr, .dark .hljs-attribute, .dark .hljs-regexp, .dark .hljs-symbol, .dark .hljs-bullet, .dark .hljs-addition, .dark .hljs-variable, .dark .hljs-template-tag, .dark .hljs-template-variable { color: #98c379; }
+.dark .hljs-number, .dark .hljs-meta { color: #d19a66; }
+.dark .hljs-built_in, .dark .hljs-class .hljs-title, .dark .hljs-function .hljs-title, .dark .hljs-title.function_ { color: #61afef; }
+.dark .hljs-deletion { color: #e06c75; }
+.dark .hljs-emphasis { font-style: italic; }

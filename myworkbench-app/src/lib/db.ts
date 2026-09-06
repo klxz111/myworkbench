@@ -8,6 +8,8 @@ const DB_PATH = path.join(
   'index.db'
 );
 
+let dbInstance: Database.Database | null = null;
+
 function ensureDbDir() {
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(/* turbopackIgnore: true */ dir)) {
@@ -15,12 +17,14 @@ function ensureDbDir() {
   }
 }
 
-export function getDb() {
-  ensureDbDir();
-  const db = new Database(DB_PATH);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
-  return db;
+export function getDb(): Database.Database {
+  if (!dbInstance) {
+    ensureDbDir();
+    dbInstance = new Database(DB_PATH);
+    dbInstance.pragma('journal_mode = WAL');
+    dbInstance.pragma('foreign_keys = ON');
+  }
+  return dbInstance;
 }
 
 export function initDb() {
@@ -52,6 +56,13 @@ export function initDb() {
       UNIQUE(from_id, to_id, relation)
     )
   `);
+
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_status ON entities(status)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_updated_at ON entities(updated_at)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type_status ON entities(type, status)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_from_id ON relations(from_id)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_to_id ON relations(to_id)`);
 
   db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS entities_fts USING fts5(

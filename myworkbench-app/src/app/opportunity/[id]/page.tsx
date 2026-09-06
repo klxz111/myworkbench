@@ -11,7 +11,7 @@ export default async function OpportunityDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <Suspense fallback={<div className="text-gray-500">Loading opportunity...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载机会中...</div>}>
         <OpportunityDetailClient id={id} />
       </Suspense>
     </div>

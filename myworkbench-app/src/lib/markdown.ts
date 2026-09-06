@@ -14,7 +14,10 @@ export type EntityType =
   | 'opportunity'
   | 'radar'
   | 'capital'
-  | 'profile';
+  | 'profile'
+  | 'event'
+  | 'organization'
+  | 'task';
 
 export const ENTITY_DIRS: Record<EntityType, string> = {
   strategy: 'strategy',
@@ -29,6 +32,9 @@ export const ENTITY_DIRS: Record<EntityType, string> = {
   radar: 'radar',
   capital: 'capital',
   profile: 'profile',
+  event: 'events',
+  organization: 'organizations',
+  task: 'tasks',
 };
 
 export interface EntityFrontmatter {
@@ -102,7 +108,9 @@ export function writeEntity(
     fs.mkdirSync(/* turbopackIgnore: true */ dir, { recursive: true });
   }
 
-  const file = matter.stringify(content, data);
+  // content 属于正文，不应写进 frontmatter
+  const { content: _ignored, ...frontmatterOnly } = data as Record<string, unknown>;
+  const file = matter.stringify(content, frontmatterOnly);
   fs.writeFileSync(/* turbopackIgnore: true */ filePath, file, 'utf-8');
 
   return {
@@ -119,6 +127,100 @@ export function deleteEntity(type: EntityType, slug: string): boolean {
   const filePath = resolveEntityPath(type, slug);
   if (!fs.existsSync(/* turbopackIgnore: true */ filePath)) return false;
   fs.unlinkSync(/* turbopackIgnore: true */ filePath);
+  return true;
+}
+
+/* ---------------- 回收站（软删除） ---------------- */
+
+export function getTrashDir(): string {
+  return path.join(getEntityRoot(), '.trash');
+}
+
+export interface TrashItem {
+  file: string;
+  type: EntityType;
+  slug: string;
+  title: string;
+  deleted_at: string;
+}
+
+/** 删除实体：移入 entities/.trash/，可恢复 */
+export function moveEntityToTrash(type: EntityType, slug: string): string | null {
+  const filePath = resolveEntityPath(type, slug);
+  if (!fs.existsSync(/* turbopackIgnore: true */ filePath)) return null;
+
+  const trashDir = getTrashDir();
+  if (!fs.existsSync(/* turbopackIgnore: true */ trashDir)) {
+    fs.mkdirSync(/* turbopackIgnore: true */ trashDir, { recursive: true });
+  }
+
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, '0');
+  const ts = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  const trashName = `${ts}-${type}-${slug}.md`;
+
+  fs.renameSync(/* turbopackIgnore: true */ filePath, path.join(trashDir, trashName));
+  return trashName;
+}
+
+export function listTrash(): TrashItem[] {
+  const trashDir = getTrashDir();
+  if (!fs.existsSync(/* turbopackIgnore: true */ trashDir)) return [];
+
+  return fs
+    .readdirSync(/* turbopackIgnore: true */ trashDir)
+    .filter((f) => f.endsWith('.md'))
+    .map((file) => {
+      try {
+        const raw = fs.readFileSync(/* turbopackIgnore: true */ path.join(trashDir, file), 'utf-8');
+        const parsed = matter(raw);
+        const data = parsed.data as EntityFrontmatter;
+        // 文件名前缀即删除时间
+        const m = file.match(/^(\d{8}-\d{6})-/);
+        return {
+          file,
+          type: data.type,
+          slug: data.id || file.replace(/^\d{8}-\d{6}-[a-z]+-/, '').replace(/\.md$/, ''),
+          title: data.title || file,
+          deleted_at: m ? m[1] : file,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .filter((x): x is TrashItem => x !== null)
+    .sort((a, b) => b.deleted_at.localeCompare(a.deleted_at));
+}
+
+/** 从回收站恢复；目标 slug 已存在时返回冲突 */
+export function restoreFromTrash(file: string): { ok: boolean; error?: string; type?: EntityType; slug?: string } {
+  if (!/^[\w.-]+\.md$/.test(file)) return { ok: false, error: '非法文件名' };
+  const trashPath = path.join(getTrashDir(), file);
+  if (!fs.existsSync(/* turbopackIgnore: true */ trashPath)) return { ok: false, error: '回收站中不存在该文件' };
+
+  const raw = fs.readFileSync(/* turbopackIgnore: true */ trashPath, 'utf-8');
+  const parsed = matter(raw);
+  const data = parsed.data as EntityFrontmatter;
+  if (!data.type || !ENTITY_DIRS[data.type as EntityType]) {
+    return { ok: false, error: '文件缺少有效的实体类型' };
+  }
+  const type = data.type as EntityType;
+  const slug = file.replace(/^\d{8}-\d{6}-[a-z]+-/, '').replace(/\.md$/, '');
+
+  const targetPath = resolveEntityPath(type, slug);
+  if (fs.existsSync(/* turbopackIgnore: true */ targetPath)) {
+    return { ok: false, error: `${type}/${slug} 已存在，无法恢复` };
+  }
+
+  fs.renameSync(/* turbopackIgnore: true */ trashPath, targetPath);
+  return { ok: true, type, slug };
+}
+
+export function purgeTrashFile(file: string): boolean {
+  if (!/^[\w.-]+\.md$/.test(file)) return false;
+  const trashPath = path.join(getTrashDir(), file);
+  if (!fs.existsSync(/* turbopackIgnore: true */ trashPath)) return false;
+  fs.unlinkSync(/* turbopackIgnore: true */ trashPath);
   return true;
 }
 

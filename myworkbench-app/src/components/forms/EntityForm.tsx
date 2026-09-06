@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { COMMON_FIELDS, TYPE_SPECIFIC_FIELDS } from '@/lib/fields';
 
 export interface EntityFormData {
   id?: string;
@@ -18,96 +19,29 @@ interface EntityFormProps {
   onCancel?: () => void;
 }
 
-const COMMON_FIELDS = [
-  { key: 'title', label: 'Title', type: 'text' },
-  { key: 'status', label: 'Status', type: 'select', options: ['active', 'archived', 'draft'] },
-  { key: 'tags', label: 'Tags', type: 'tags' },
-  { key: 'content', label: 'Content', type: 'textarea' },
-];
-
-const TYPE_SPECIFIC_FIELDS: Record<string, Array<{ key: string; label: string; type: string; options?: string[] }>> = {
-  decision: [
-    { key: 'context', label: 'Context', type: 'textarea' },
-    { key: 'question', label: 'Question', type: 'text' },
-    { key: 'current_belief', label: 'Current Belief', type: 'textarea' },
-    { key: 'decision', label: 'Decision', type: 'textarea' },
-    { key: 'expected_outcome', label: 'Expected Outcome', type: 'textarea' },
-    { key: 'actual_result', label: 'Actual Result', type: 'textarea' },
-    { key: 'belief_update', label: 'Belief Update', type: 'textarea' },
-  ],
-  evidence: [
-    { key: 'source_type', label: 'Source Type', type: 'select', options: ['paper', 'news', 'policy', 'company', 'experiment', 'conversation', 'market', 'observation'] },
-    { key: 'source_url', label: 'Source URL', type: 'text' },
-    { key: 'date', label: 'Date', type: 'text' },
-    { key: 'summary', label: 'Summary', type: 'textarea' },
-    { key: 'strength', label: 'Strength', type: 'select', options: ['strong', 'moderate', 'weak'] },
-  ],
-  belief: [
-    { key: 'description', label: 'Description', type: 'textarea' },
-    { key: 'confidence', label: 'Confidence', type: 'select', options: ['high', 'medium', 'low'] },
-  ],
-  strategy: [
-    { key: 'horizon', label: 'Horizon', type: 'text' },
-  ],
-  project: [
-    { key: 'hypothesis', label: 'Hypothesis', type: 'textarea' },
-    { key: 'start_date', label: 'Start Date', type: 'text' },
-    { key: 'end_date', label: 'End Date', type: 'text' },
-  ],
-  research: [
-    { key: 'identity', label: 'Research Identity', type: 'textarea' },
-    { key: 'core_questions', label: 'Core Questions', type: 'textarea' },
-  ],
-  person: [
-    { key: 'organization', label: 'Organization', type: 'text' },
-    { key: 'role', label: 'Role', type: 'text' },
-    { key: 'relationship_strength', label: 'Relationship Strength', type: 'select', options: ['strong', 'medium', 'weak'] },
-  ],
-  opportunity: [
-    { key: 'category', label: 'Category', type: 'select', options: ['research', 'internship', 'scholarship', 'fellowship', 'phd', 'postdoc', 'company', 'lab', 'advisor', 'oss', 'startup', 'conference'] },
-    { key: 'strategic_fit', label: 'Strategic Fit (1-10)', type: 'text' },
-    { key: 'research_fit', label: 'Research Fit (1-10)', type: 'text' },
-    { key: 'option_value', label: 'Option Value', type: 'textarea' },
-    { key: 'cost', label: 'Cost', type: 'text' },
-    { key: 'risk', label: 'Risk', type: 'text' },
-    { key: 'timing', label: 'Timing', type: 'text' },
-    { key: 'deadline', label: 'Deadline', type: 'text' },
-  ],
-  experiment: [
-    { key: 'hypothesis', label: 'Hypothesis', type: 'textarea' },
-    { key: 'setup', label: 'Setup', type: 'textarea' },
-    { key: 'result', label: 'Result', type: 'textarea' },
-    { key: 'failure_mode', label: 'Failure Mode', type: 'textarea' },
-    { key: 'interpretation', label: 'Interpretation', type: 'textarea' },
-    { key: 'follow_up', label: 'Follow-up', type: 'textarea' },
-  ],
-  radar: [
-    { key: 'category', label: 'Category', type: 'select', options: ['ai_research', 'frontier_lab', 'company', 'university', 'hardware', 'ml_systems', 'robotics', 'funding', 'policy', 'immigration', 'ecosystem'] },
-    { key: 'signal_strength', label: 'Signal Strength', type: 'select', options: ['high', 'medium', 'low'] },
-    { key: 'impact', label: 'Impact', type: 'textarea' },
-  ],
-  capital: [
-    { key: 'period_start', label: 'Period Start', type: 'text' },
-    { key: 'period_end', label: 'Period End', type: 'text' },
-  ],
-  profile: [
-    { key: 'versions', label: 'Versions (JSON)', type: 'textarea' },
-    { key: 'compiled_from', label: 'Compiled From', type: 'text' },
-  ],
-};
-
 export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFormProps) {
-  const [formData, setFormData] = useState<EntityFormData>(initialData || {
-    title: '',
-    status: 'active',
-    tags: [],
-    content: '',
+  const [formData, setFormData] = useState<EntityFormData>(() => {
+    if (initialData) return initialData;
+    const specific = TYPE_SPECIFIC_FIELDS[type] || [];
+    const statusField = (specific.length > 0 ? specific : COMMON_FIELDS).find((f) => f.key === 'status');
+    return {
+      title: '',
+      status: statusField?.options?.[0] || 'active',
+      tags: [],
+      content: '',
+    };
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
 
-  const fields = [...COMMON_FIELDS, ...(TYPE_SPECIFIC_FIELDS[type] || [])];
+  // 类型专属字段可覆盖同名的通用字段（如 task 的 status）
+  const fields = (() => {
+    const specific = TYPE_SPECIFIC_FIELDS[type] || [];
+    if (specific.length === 0) return COMMON_FIELDS;
+    const overrideKeys = new Set(specific.map((f) => f.key));
+    return [...COMMON_FIELDS.filter((f) => !overrideKeys.has(f.key)), ...specific];
+  })();
 
   useEffect(() => {
     if (initialData) {
@@ -122,28 +56,31 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
 
     try {
       const isEdit = !!initialData?.id;
+      const generatedSlug = formData.id || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const url = isEdit ? `/api/entities/${type}/${initialData.id}` : `/api/entities/${type}`;
       const method = isEdit ? 'PUT' : 'POST';
+
+      const payload: Record<string, unknown> = {
+        slug: generatedSlug,
+        data: { ...formData, id: generatedSlug },
+        content: formData.content,
+      };
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug: formData.id || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-          data: formData,
-          content: formData.content,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Failed to save entity');
+        throw new Error(err.error || '保存实体失败');
       }
 
       const saved = await res.json();
       onSuccess?.(saved);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save entity');
+       setError(err instanceof Error ? err.message : '保存实体失败');
     } finally {
       setLoading(false);
     }
@@ -183,6 +120,30 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
             />
           )}
 
+          {field.type === 'date' && (
+            <input
+              type="date"
+              value={formData[field.key] as string || ''}
+              onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            />
+          )}
+
+          {field.type === 'number' && (
+            <input
+              type="number"
+              step="any"
+              value={(formData[field.key] as number | string | undefined) ?? ''}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  [field.key]: e.target.value === '' ? '' : Number(e.target.value),
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            />
+          )}
+
           {field.type === 'textarea' && (
             <textarea
               rows={4}
@@ -198,7 +159,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
             >
-              <option value="">Select...</option>
+               <option value="">请选择...</option>
               {field.options.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
@@ -230,18 +191,22 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  placeholder="Add tag..."
+                   placeholder="添加标签..."
                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                 />
                 <button
                   type="button"
                   onClick={addTag}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                   className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
-                  Add
+                  添加
                 </button>
               </div>
             </div>
+          )}
+
+          {field.hint && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{field.hint}</p>
           )}
         </div>
       ))}
@@ -252,16 +217,16 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
           disabled={loading}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {loading ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
+          {loading ? '保存中...' : initialData?.id ? '更新' : '创建'}
         </button>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            Cancel
-          </button>
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          取消
+        </button>
         )}
       </div>
     </form>

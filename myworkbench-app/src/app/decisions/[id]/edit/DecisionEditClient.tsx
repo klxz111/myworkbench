@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EntityForm, EntityFormData } from '@/components/forms/EntityForm';
 
@@ -33,6 +34,7 @@ interface DecisionEditProps {
 }
 
 export function DecisionEditClient({ id }: DecisionEditProps) {
+  const router = useRouter();
   const [decision, setDecision] = useState<Decision | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,12 +45,12 @@ export function DecisionEditClient({ id }: DecisionEditProps) {
       try {
         const res = await fetch(`/api/entities/decision/${id}`);
         if (!res.ok) {
-          throw new Error('Decision not found');
+          throw new Error('未找到决策');
         }
         const data = await res.json();
         setDecision(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load decision');
+        setError(err instanceof Error ? err.message : '加载决策失败');
       } finally {
         setLoading(false);
       }
@@ -58,21 +60,19 @@ export function DecisionEditClient({ id }: DecisionEditProps) {
 
   const handleSave = (savedDecision: EntityFormData) => {
     setSaved(true);
-    setTimeout(() => {
-      window.location.href = `/decisions/${id}`;
-    }, 1000);
+    router.push(`/decisions/${id}`);
   };
 
   if (loading) {
-    return <div className="text-gray-500">Loading edit form...</div>;
+    return <div className="text-gray-500">加载编辑表单中...</div>;
   }
 
   if (error || !decision) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-        <p className="text-red-800 dark:text-red-200">{error || 'Decision not found'}</p>
+        <p className="text-red-800 dark:text-red-200">{error || '未找到决策'}</p>
         <Link href="/decisions" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
-          ← Back to Decisions
+          ← 返回决策列表
         </Link>
       </div>
     );
@@ -82,7 +82,7 @@ export function DecisionEditClient({ id }: DecisionEditProps) {
     <div className="space-y-6">
       {saved && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <p className="text-green-800 dark:text-green-200">Decision saved successfully! Redirecting...</p>
+          <p className="text-green-800 dark:text-green-200">决策保存成功！正在跳转...</p>
         </div>
       )}
 

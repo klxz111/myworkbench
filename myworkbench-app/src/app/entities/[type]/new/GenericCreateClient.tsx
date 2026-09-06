@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EntityForm, EntityFormData } from '@/components/forms/EntityForm';
 
@@ -8,21 +9,35 @@ interface GenericCreateProps {
   type: string;
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  strategy: '策略',
+  decision: '决策',
+  research: '研究',
+  evidence: '证据',
+  project: '项目',
+  experiment: '实验',
+  belief: '信念',
+  person: '人员',
+  opportunity: '机会',
+  radar: '雷达',
+  capital: '资本',
+  profile: '个人档案',
+};
+
 export function GenericCreateClient({ type }: GenericCreateProps) {
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSave = (savedEntity: EntityFormData) => {
     setSaved(true);
-    setTimeout(() => {
-      window.location.href = `/${type}s`;
-    }, 1000);
+    router.push(`/${type}s`);
   };
 
   if (saved) {
     return (
       <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-        <p className="text-green-800 dark:text-green-200">{type} created successfully! Redirecting...</p>
+        <p className="text-green-800 dark:text-green-200">{TYPE_LABELS[type] || type}创建成功！正在跳转...</p>
       </div>
     );
   }
@@ -32,7 +47,7 @@ export function GenericCreateClient({ type }: GenericCreateProps) {
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error}</p>
         <Link href={`/${type}s`} className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
-          ← Back to {type.charAt(0).toUpperCase() + type.slice(1)}s
+          ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
         </Link>
       </div>
     );

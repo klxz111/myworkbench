@@ -10,20 +10,20 @@ export default function CapitalPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Capital
+            资本
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Multi-dimensional capital tracking
+            多维度资本追踪
           </p>
         </div>
         <Link
           href="/capital/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          New Capital Entry
+          新建资本条目
         </Link>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading capital...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载资本中...</div>}>
         <CapitalClient />
       </Suspense>
     </div>

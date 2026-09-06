@@ -11,7 +11,7 @@ export default async function ProfileDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <Suspense fallback={<div className="text-gray-500">Loading profile...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载档案中...</div>}>
         <ProfileDetailClient id={id} />
       </Suspense>
     </div>

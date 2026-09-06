@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { RelationsSection } from '@/components/RelationsSection';
+import { BacklinksSection } from '@/components/BacklinksSection';
+import { StatusTimeline } from '@/components/StatusTimeline';
 
 interface RadarDetail {
   id: string;
@@ -33,6 +36,7 @@ export function RadarDetailClient({ id }: { id: string }) {
   const [radar, setRadar] = useState<RadarDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchRadar() {
@@ -44,7 +48,7 @@ export function RadarDetailClient({ id }: { id: string }) {
         const data = await res.json();
         setRadar(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load radar');
+        setError(err instanceof Error ? err.message : '加载雷达失败');
       } finally {
         setLoading(false);
       }
@@ -52,16 +56,29 @@ export function RadarDetailClient({ id }: { id: string }) {
     fetchRadar();
   }, [id]);
 
+  const handleDelete = async () => {
+    if (!confirm('确定要删除此雷达条目吗？')) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/entities/radar/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('删除失败');
+      window.location.href = '/radar';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '删除雷达失败');
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
-    return <div className="text-gray-500">Loading radar...</div>;
+    return <div className="text-gray-500">加载雷达中...</div>;
   }
 
   if (error || !radar) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-        <p className="text-red-800 dark:text-red-200">{error || 'Radar entry not found'}</p>
+        <p className="text-red-800 dark:text-red-200">{error || '未找到雷达条目'}</p>
         <Link href="/radar" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
-          ← Back to Radar
+          ← 返回雷达列表
         </Link>
       </div>
     );
@@ -92,8 +109,8 @@ export function RadarDetailClient({ id }: { id: string }) {
                   {radar.signal_strength} signal
                 </span>
               )}
-              <span>Created: {new Date(radar.created_at).toLocaleDateString()}</span>
-              <span>Updated: {new Date(radar.updated_at).toLocaleDateString()}</span>
+              <span>创建：{new Date(radar.created_at).toLocaleDateString()}</span>
+              <span>更新：{new Date(radar.updated_at).toLocaleDateString()}</span>
             </div>
             {radar.tags && radar.tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -113,13 +130,20 @@ export function RadarDetailClient({ id }: { id: string }) {
               href={`/entities/radar/${id}/edit`}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Edit
+              编辑
             </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              {deleting ? '删除中...' : '删除'}
+            </button>
             <Link
               href="/radar"
               className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
-              ← Back
+              ← 返回
             </Link>
           </div>
         </div>
@@ -128,7 +152,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       {radar.impact && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Impact
+            影响
           </h3>
           <p className="text-gray-700 dark:text-gray-300">{radar.impact}</p>
         </section>
@@ -137,7 +161,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       {radar.content && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Details
+            详情
           </h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{radar.content}</p>
         </section>
@@ -146,7 +170,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       {(radar.linked_events && radar.linked_events.length > 0) && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Linked Events
+            关联事件
           </h3>
           <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
             {radar.linked_events.map((event) => (
@@ -159,7 +183,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       {(radar.linked_decisions && radar.linked_decisions.length > 0) && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Linked Decisions
+            关联决策
           </h3>
           <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
             {radar.linked_decisions.map((decision) => (
@@ -168,6 +192,11 @@ export function RadarDetailClient({ id }: { id: string }) {
           </ul>
         </section>
       )}
+
+      <StatusTimeline createdAt={radar.created_at} updatedAt={radar.updated_at} status={radar.status} />
+
+      <RelationsSection entityId={id} entityType="radar" />
+      <BacklinksSection entityType="radar" entityId={id} />
     </div>
   );
 }

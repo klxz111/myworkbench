@@ -10,20 +10,20 @@ export default function ResearchPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Research
+            研究
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Research topics, identity, and evidence
+            研究主题、身份与证据
           </p>
         </div>
         <Link
           href="/research/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          New Research
+          新建研究
         </Link>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading research...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载研究中...</div>}>
         <ResearchClient />
       </Suspense>
     </div>

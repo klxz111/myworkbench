@@ -15,28 +15,22 @@ export default async function StrategyDetailPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Strategy
+            策略
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Strategy detail
+            策略详情
           </p>
         </div>
         <div className="flex gap-3">
           <Link
-            href={`/entities/strategy/${id}/edit`}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Edit
-          </Link>
-          <Link
             href="/strategy"
             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
-            ← Back
+            ← 返回
           </Link>
         </div>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading strategy...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载策略中...</div>}>
         <StrategyDetailClient id={id} />
       </Suspense>
     </div>

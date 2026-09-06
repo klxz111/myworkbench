@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import dagre from '@dagrejs/dagre';
 import {
   ReactFlow,
   Background,
@@ -24,16 +26,19 @@ const NODE_COLORS: Record<string, { bg: string; border: string; text: string }> 
   strategy: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-900' },
 };
 
-const NODE_LABELS: Record<string, string> = {
-  evidence: 'E',
-  belief: 'B',
-  decision: 'D',
-  project: 'P',
-  experiment: 'X',
-  research: 'R',
-  person: 'N',
-  strategy: 'S',
+const TYPE_URLS: Record<string, string> = {
+  evidence: '/evidence',
+  belief: '/belief',
+  decision: '/decisions',
+  project: '/projects',
+  experiment: '/experiment',
+  research: '/research',
+  person: '/people',
+  strategy: '/strategy',
 };
+
+const NODE_WIDTH = 180;
+const NODE_HEIGHT = 70;
 
 interface GraphData {
   nodes: { id: string; type: string; title: string; status: string }[];
@@ -41,6 +46,7 @@ interface GraphData {
 }
 
 export function GraphClient() {
+  const router = useRouter();
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,19 +69,86 @@ export function GraphClient() {
     fetchGraph();
   }, []);
 
-  const getNodeUrl = useCallback((nodeId: string, nodeType: string): string => {
-    const typeMap: Record<string, string> = {
-      evidence: '/evidence',
-      belief: '/belief',
-      decision: '/decisions',
-      project: '/projects',
-      experiment: '/projects',
-      research: '/research',
-      person: '/people',
-      strategy: '/strategy',
-    };
-    return `${typeMap[nodeType] || '/'}/${nodeId}`;
-  }, []);
+  const { nodes, edges } = useMemo(() => {
+    if (!graphData || graphData.nodes.length === 0) {
+      return { nodes: [] as Node[], edges: [] as Edge[] };
+    }
+
+    const g = new dagre.graphlib.Graph();
+    g.setDefaultEdgeLabel(() => ({}));
+    g.setGraph({ rankdir: 'LR', nodesep: 60, ranksep: 150 });
+    for (const n of graphData.nodes) {
+      g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    }
+    for (const e of graphData.edges) {
+      g.setEdge(e.source, e.target);
+    }
+    dagre.layout(g);
+
+    const layoutNodes: Node[] = graphData.nodes.map((node) => {
+      const pos = g.node(node.id);
+      const colors = NODE_COLORS[node.type] || NODE_COLORS.strategy;
+      return {
+        id: node.id,
+        type: 'default',
+        position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
+        data: {
+          entityType: node.type,
+          label: (
+            <div
+              className={`px-3 py-2 rounded-lg border ${colors.bg} ${colors.border} ${colors.text} min-w-[120px] text-center cursor-pointer`}
+            >
+              <div className="text-xs font-medium opacity-70 mb-1">{node.type}</div>
+              <div className="text-sm font-semibold truncate">{node.title}</div>
+            </div>
+          ),
+        },
+        style: {
+          background: 'transparent',
+          border: 'none',
+          padding: 0,
+        },
+      };
+    });
+
+    const layoutEdges: Edge[] = graphData.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      label: edge.relation,
+      type: 'smoothstep',
+      animated: true,
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+      },
+      labelStyle: {
+        fontSize: 10,
+        fontWeight: 500,
+        fill: '#6b7280',
+      },
+      labelBgStyle: {
+        fill: '#f9fafb',
+        fillOpacity: 0.9,
+      },
+      labelBgPadding: [4, 2],
+      labelBgBorderRadius: 4,
+    }));
+
+    return { nodes: layoutNodes, edges: layoutEdges };
+  }, [graphData]);
+
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      const entityType = (node.data as { entityType?: string })?.entityType || '';
+      const base = TYPE_URLS[entityType] || '/entities';
+      router.push(`${base}/${node.id}`);
+    },
+    [router]
+  );
 
   if (loading) {
     return <div className="text-gray-500">Loading evidence chain...</div>;
@@ -97,62 +170,15 @@ export function GraphClient() {
     );
   }
 
-  const nodes: Node[] = graphData.nodes.map((node) => {
-    const colors = NODE_COLORS[node.type] || NODE_COLORS.strategy;
-    const label = NODE_LABELS[node.type] || node.type[0].toUpperCase();
-
-    return {
-      id: node.id,
-      type: 'default',
-      position: { x: 0, y: 0 },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-      data: {
-        label: (
-          <div className={`px-3 py-2 rounded-lg border ${colors.bg} ${colors.border} ${colors.text} min-w-[120px] text-center`}>
-            <div className="text-xs font-medium opacity-70 mb-1">{node.type}</div>
-            <div className="text-sm font-semibold truncate">{node.title}</div>
-          </div>
-        ),
-      },
-      style: {
-        background: 'transparent',
-        border: 'none',
-        padding: 0,
-      },
-    };
-  });
-
-  const edges: Edge[] = graphData.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    label: edge.relation,
-    type: 'smoothstep',
-    animated: true,
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      width: 20,
-      height: 20,
-    },
-    labelStyle: {
-      fontSize: 10,
-      fontWeight: 500,
-      fill: '#6b7280',
-    },
-    labelBgStyle: {
-      fill: '#f9fafb',
-      fillOpacity: 0.9,
-    },
-    labelBgPadding: [4, 2],
-    labelBgBorderRadius: 4,
-  }));
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+    <div
+      className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+      style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        onNodeClick={handleNodeClick}
         fitView
         attributionPosition="bottom-left"
         defaultEdgeOptions={{
@@ -169,7 +195,7 @@ export function GraphClient() {
         <Controls />
         <MiniMap
           nodeColor={(node) => {
-            const type = (node.data as any)?.label?.props?.children?.[0]?.props?.children || 'strategy';
+            const entityType = (node.data as { entityType?: string })?.entityType || 'strategy';
             const colors: Record<string, string> = {
               evidence: '#3b82f6',
               belief: '#8b5cf6',
@@ -180,7 +206,7 @@ export function GraphClient() {
               person: '#eab308',
               strategy: '#6b7280',
             };
-            return colors[type] || '#6b7280';
+            return colors[entityType] || '#6b7280';
           }}
           maskColor="rgba(0, 0, 0, 0.1)"
         />

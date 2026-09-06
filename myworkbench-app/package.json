@@ -6,15 +6,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cli": "tsx scripts/cli.ts"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@dagrejs/dagre": "^3.1.1",
+    "@tailwindcss/typography": "^0.5.20",
     "@xyflow/react": "^12.11.6",
     "better-sqlite3": "^13.0.3",
+    "codemirror": "^6.0.2",
     "gray-matter": "^4.0.3",
+    "highlight.js": "^11.12.0",
+    "jszip": "^3.10.1",
+    "marked": "^18.0.11",
+    "marked-highlight": "^2.2.4",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "recharts": "^3.10.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -25,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

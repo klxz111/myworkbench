@@ -11,7 +11,7 @@ export default async function RadarDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <Suspense fallback={<div className="text-gray-500">Loading radar...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载雷达中...</div>}>
         <RadarDetailClient id={id} />
       </Suspense>
     </div>

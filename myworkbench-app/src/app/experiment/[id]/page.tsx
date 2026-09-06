@@ -11,7 +11,7 @@ export default async function ExperimentDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <Suspense fallback={<div className="text-gray-500">Loading experiment...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载实验中...</div>}>
         <ExperimentDetailClient id={id} />
       </Suspense>
     </div>

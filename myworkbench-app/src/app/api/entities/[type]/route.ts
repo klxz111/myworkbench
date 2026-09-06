@@ -14,7 +14,46 @@ export async function GET(
 ) {
   try {
     const { type } = await params;
-    const entities = listEntities(type as EntityType);
+    const q = request.nextUrl.searchParams.get('q')?.trim() || '';
+
+    if (q) {
+      const entities = listEntities(type as EntityType);
+      const lowerQ = q.toLowerCase();
+      const results = entities
+        .filter((e) =>
+          e.frontmatter.title.toLowerCase().includes(lowerQ) ||
+          e.content.toLowerCase().includes(lowerQ)
+        )
+        .map((e) => {
+          const title = e.frontmatter.title;
+          const content = e.content;
+          let snippet = '';
+
+          if (title.toLowerCase().includes(lowerQ)) {
+            snippet = title;
+          } else {
+            const lowerContent = content.toLowerCase();
+            const index = lowerContent.indexOf(lowerQ);
+            if (index >= 0) {
+              const start = Math.max(0, index - 50);
+              const end = Math.min(content.length, index + q.length + 50);
+              snippet =
+                (start > 0 ? '...' : '') +
+                content.slice(start, end) +
+                (end < content.length ? '...' : '');
+            }
+          }
+
+          return {
+            type: e.type,
+            title,
+            slug: e.slug,
+            snippet,
+          };
+        });
+
+      return NextResponse.json({ query: q, results });
+    }
 
     const db = initDb();
     const rows = db.prepare('SELECT id, title, status, tags, updated_at FROM entities WHERE type = ? ORDER BY updated_at DESC').all(type) as any[];
@@ -43,11 +82,16 @@ export async function POST(
     const body = await request.json();
     const { slug, data, content } = body;
 
-    if (!slug || !data || !content) {
+    if (!slug || !data || typeof content !== 'string') {
       return NextResponse.json({ error: 'Missing required fields: slug, data, content' }, { status: 400 });
     }
 
-    const entity = createEntity(type as EntityType, slug, { ...data, content });
+    const entityData = {
+      ...data,
+      content,
+      id: data.id || slug,
+    };
+    const entity = createEntity(type as EntityType, slug, entityData);
 
     return NextResponse.json(entity, { status: 201 });
   } catch (error) {

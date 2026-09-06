@@ -2,43 +2,40 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { MarkdownViewer } from '@/components/MarkdownViewer';
+import { BacklinksSection } from '@/components/BacklinksSection';
 
-interface BeliefDetail {
+interface Belief {
   id: string;
   title: string;
   status: string;
   tags: string[];
-  created_at: string;
   updated_at: string;
   content: string;
-  description?: string;
+  confidence?: string;
   linked_evidence?: string[];
   linked_decisions?: string[];
-  confidence?: string;
 }
 
-const CONFIDENCE_COLORS: Record<string, string> = {
-  high: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  low: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-};
+interface BeliefDetailProps {
+  id: string;
+}
 
-export function BeliefDetailClient({ id }: { id: string }) {
-  const [belief, setBelief] = useState<BeliefDetail | null>(null);
+export function BeliefDetailClient({ id }: BeliefDetailProps) {
+  const [belief, setBelief] = useState<Belief | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchBelief() {
       try {
         const res = await fetch(`/api/entities/belief/${id}`);
-        if (!res.ok) {
-          throw new Error('Belief not found');
-        }
+        if (!res.ok) throw new Error('Belief not found');
         const data = await res.json();
         setBelief(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load belief');
+        setError(err instanceof Error ? err.message : '加载信念失败');
       } finally {
         setLoading(false);
       }
@@ -46,17 +43,25 @@ export function BeliefDetailClient({ id }: { id: string }) {
     fetchBelief();
   }, [id]);
 
-  if (loading) {
-    return <div className="text-gray-500">Loading belief...</div>;
-  }
+  const handleDelete = async () => {
+    if (!confirm('确定要删除此信念吗？')) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/entities/belief/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('删除失败');
+      window.location.href = '/belief';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '删除信念失败');
+      setDeleting(false);
+    }
+  };
 
+  if (loading) return <div className="text-gray-500">加载信念中...</div>;
   if (error || !belief) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-        <p className="text-red-800 dark:text-red-200">{error || 'Belief not found'}</p>
-        <Link href="/belief" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
-          ← Back to Beliefs
-        </Link>
+        <p className="text-red-800 dark:text-red-200">{error || '未找到信念'}</p>
+        <Link href="/belief" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回信念列表</Link>
       </div>
     );
   }
@@ -66,106 +71,29 @@ export function BeliefDetailClient({ id }: { id: string }) {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {belief.title}
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{belief.title}</h2>
             <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                belief.status === 'active'
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-              }`}>
-                {belief.status}
-              </span>
-              {belief.confidence && (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${CONFIDENCE_COLORS[belief.confidence] || 'bg-gray-100 text-gray-800'}`}>
-                  {belief.confidence} confidence
-                </span>
-              )}
-              <span>Created: {new Date(belief.created_at).toLocaleDateString()}</span>
-              <span>Updated: {new Date(belief.updated_at).toLocaleDateString()}</span>
+              {belief.confidence && <span>置信度：{belief.confidence}</span>}
+              <span>更新：{new Date(belief.updated_at).toLocaleDateString()}</span>
             </div>
             {belief.tags && belief.tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {belief.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                {belief.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
               </div>
             )}
+          </div>
+          <div className="flex gap-3">
+            <Link href={`/belief/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">编辑</Link>
+            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
           </div>
         </div>
       </div>
 
-      {belief.description && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Description
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">{belief.description}</p>
-        </section>
-      )}
-
-      <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-          Content
-        </h3>
-        <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-          {belief.content}
-        </div>
-      </section>
-
-      {belief.linked_evidence && belief.linked_evidence.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Linked Evidence
-          </h3>
-          <ul className="list-disc list-inside text-gray-700 dark:text-gray-300">
-            {belief.linked_evidence.map((evidenceId, index) => (
-              <li key={index}>
-                <Link
-                  href={`/evidence/${evidenceId}`}
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {evidenceId}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {belief.linked_decisions && belief.linked_decisions.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Linked Decisions
-          </h3>
-          <ul className="list-disc list-inside text-gray-700 dark:text-gray-300">
-            {belief.linked_decisions.map((decisionId, index) => (
-              <li key={index}>
-                <Link
-                  href={`/decisions/${decisionId}`}
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  {decisionId}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <MarkdownViewer entityType="belief" id={id} />
+      <BacklinksSection entityType="belief" entityId={id} />
 
       <div className="flex gap-4">
-        <Link
-          href="/belief"
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-        >
-          ← Back to Beliefs
-        </Link>
+        <Link href="/belief" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">← 返回信念列表</Link>
       </div>
     </div>
   );

@@ -10,20 +10,20 @@ export default function EvidencePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Evidence
+            证据
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Raw observations, experiments, and external signals
+            原始观察、实验与外部信号
           </p>
         </div>
         <Link
           href="/evidence/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          New Evidence
+          新建证据
         </Link>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading evidence...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载证据中...</div>}>
         <EvidenceClient />
       </Suspense>
     </div>

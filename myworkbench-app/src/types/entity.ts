@@ -75,6 +75,8 @@ export interface PersonEntity extends BaseEntity {
   relationship_strength?: 'strong' | 'medium' | 'weak';
   last_interaction?: string;
   next_action?: string;
+  next_action_date?: string;
+  follow_up_notes?: string;
 }
 
 export interface EvidenceEntity extends BaseEntity {
@@ -184,6 +186,24 @@ export interface ProfileEntity extends BaseEntity {
   last_compiled?: string;
 }
 
+export interface EventEntity extends BaseEntity {
+  type: 'event';
+  event_date?: string;
+  location?: string;
+  event_type?: string;
+  linked_strategies?: string[];
+  linked_decisions?: string[];
+}
+
+export interface OrganizationEntity extends BaseEntity {
+  type: 'organization';
+  industry?: string;
+  location?: string;
+  website?: string;
+  linked_people?: string[];
+  linked_opportunities?: string[];
+}
+
 export type Entity =
   | StrategyEntity
   | ResearchEntity
@@ -196,4 +216,6 @@ export type Entity =
   | OpportunityEntity
   | RadarEntity
   | CapitalEntity
-  | ProfileEntity;
+  | ProfileEntity
+  | EventEntity
+  | OrganizationEntity;

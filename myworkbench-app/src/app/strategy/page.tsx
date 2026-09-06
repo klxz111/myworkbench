@@ -10,20 +10,20 @@ export default function StrategyPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Strategy
+            策略
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Long-term direction, timeline, and strategic constraints
+            长期方向、时间线与战略约束
           </p>
         </div>
         <Link
           href="/strategy/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          New Strategy
+          新建策略
         </Link>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading strategy...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载策略中...</div>}>
         <StrategyClient />
       </Suspense>
     </div>

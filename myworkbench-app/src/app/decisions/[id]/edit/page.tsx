@@ -14,14 +14,14 @@ export default async function DecisionEditPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Edit Decision
+            编辑决策
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Update decision details
+            更新决策详情
           </p>
         </div>
       </div>
-      <Suspense fallback={<div className="text-gray-500">Loading edit form...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载编辑表单中...</div>}>
         <DecisionEditClient id={id} />
       </Suspense>
     </div>

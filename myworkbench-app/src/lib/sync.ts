@@ -133,9 +133,15 @@ export function createEntity(
   data: EntityFrontmatter & { content: string }
 ) {
   const db = initDb();
-  const entity = writeEntity(type, slug, data, data.content);
+  const now = new Date().toISOString();
+  const normalized: EntityFrontmatter & { content: string } = {
+    ...data,
+    created_at: (data.created_at as string) || now,
+    updated_at: (data.updated_at as string) || now,
+  };
+  const entity = writeEntity(type, slug, normalized, normalized.content);
 
-  const contentHash = stableHash(data, data.content);
+  const contentHash = stableHash(normalized, normalized.content);
 
   db.prepare(
     `INSERT OR IGNORE INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content, created_at, updated_at)
@@ -144,12 +150,12 @@ export function createEntity(
     entity.id,
     entity.type,
     entity.slug,
-    data.title,
-    data.status || 'active',
-    JSON.stringify(data.tags || []),
+    normalized.title,
+    normalized.status || 'active',
+    JSON.stringify(normalized.tags || []),
     entity.filePath,
     contentHash,
-    data.content
+    normalized.content
   );
 
   const exists = db.prepare('SELECT id FROM entities WHERE id = ?').get(entity.id);
@@ -158,14 +164,16 @@ export function createEntity(
       `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, updated_at = datetime('now')
        WHERE id = ?`
     ).run(
-      data.title,
-      data.status || 'active',
-      JSON.stringify(data.tags || []),
+      normalized.title,
+      normalized.status || 'active',
+      JSON.stringify(normalized.tags || []),
       contentHash,
-      data.content,
+      normalized.content,
       entity.id
     );
   }
+
+  buildRelations();
 
   return entity;
 }
@@ -173,10 +181,14 @@ export function createEntity(
 export function buildRelations(): number {
   const db = initDb();
   const root = getEntityRoot();
-  if (!fs.existsSync(/* turbopackIgnore: true */ root)) return 0;
+  if (!fs.existsSync(/* turbopackIgnore: true */ root)) {
+    db.prepare(`DELETE FROM relations`).run();
+    return 0;
+  }
 
   const entityTypeDirs = fs.readdirSync(/* turbopackIgnore: true */ root, { withFileTypes: true });
-  let count = 0;
+  const validIds = new Set<string>();
+  const expected: { from: string; to: string; relation: string }[] = [];
 
   for (const dir of entityTypeDirs) {
     if (!dir.isDirectory()) continue;
@@ -185,42 +197,62 @@ export function buildRelations(): number {
     const entities = listEntities(type);
 
     for (const entity of entities) {
+      validIds.add(entity.id);
       const fm = entity.frontmatter;
-      const relations: { target: string; relation: string }[] = [];
 
       if (fm.linked_evidence && Array.isArray(fm.linked_evidence)) {
         for (const target of fm.linked_evidence) {
-          relations.push({ target, relation: 'supports' });
+          expected.push({ from: entity.id, to: String(target), relation: 'supports' });
         }
       }
       if (fm.linked_beliefs && Array.isArray(fm.linked_beliefs)) {
         for (const target of fm.linked_beliefs) {
-          relations.push({ target, relation: 'informs' });
+          expected.push({ from: entity.id, to: String(target), relation: 'informs' });
         }
       }
       if (fm.linked_decisions && Array.isArray(fm.linked_decisions)) {
         for (const target of fm.linked_decisions) {
-          relations.push({ target, relation: 'drives' });
+          expected.push({ from: entity.id, to: String(target), relation: 'drives' });
         }
       }
       if (fm.linked_experiments && Array.isArray(fm.linked_experiments)) {
         for (const target of fm.linked_experiments) {
-          relations.push({ target, relation: 'includes' });
+          expected.push({ from: entity.id, to: String(target), relation: 'includes' });
         }
       }
 
-      for (const rel of relations) {
-        try {
-          db.prepare(
-            `INSERT OR IGNORE INTO relations (from_id, to_id, relation) VALUES (?, ?, ?)`
-          ).run(entity.id, rel.target, rel.relation);
-          count++;
-        } catch {
-          // skip invalid relations
+      if (fm.relations && Array.isArray(fm.relations)) {
+        for (const raw of fm.relations) {
+          const r = raw as { to?: string; id?: string; type?: string; relation?: string };
+          const to = r.to ?? r.id;
+          const relation = r.type ?? r.relation;
+          if (to && relation) {
+            expected.push({ from: entity.id, to: String(to), relation: String(relation) });
+          }
         }
       }
     }
   }
 
-  return count;
+  const seen = new Set<string>();
+  const deduped: { from: string; to: string; relation: string }[] = [];
+  for (const rel of expected) {
+    if (rel.from === rel.to) continue;
+    if (!validIds.has(rel.to)) continue;
+    const key = `${rel.from}\u0000${rel.to}\u0000${rel.relation}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(rel);
+  }
+
+  return db.transaction(() => {
+    db.prepare(`DELETE FROM relations`).run();
+    const insert = db.prepare(
+      `INSERT INTO relations (from_id, to_id, relation) VALUES (?, ?, ?)`
+    );
+    for (const rel of deduped) {
+      insert.run(rel.from, rel.to, rel.relation);
+    }
+    return deduped.length;
+  })();
 }

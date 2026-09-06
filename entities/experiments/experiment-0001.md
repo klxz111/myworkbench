@@ -8,7 +8,7 @@ tags:
   - Training Efficiency
   - LLM
 hypothesis: Mixture of Experts (MoE) architectures can achieve comparable model quality to dense models with 30-40% less compute during training.
-setup: Train two 7B parameter models on identical dataset: one dense, one MoE with 8 experts and top-2 routing.
+setup: "Train two 7B parameter models on identical dataset: one dense, one MoE with 8 experts and top-2 routing."
 configuration:
   model_size: 7B
   experts: 8

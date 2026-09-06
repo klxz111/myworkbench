@@ -11,7 +11,7 @@ export default async function CapitalDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <Suspense fallback={<div className="text-gray-500">Loading capital...</div>}>
+        <Suspense fallback={<div className="text-gray-500">加载资本中...</div>}>
         <CapitalDetailClient id={id} />
       </Suspense>
     </div>
