@@ -173,7 +173,7 @@ export function BoardClient() {
                 setDragOver(null);
                 if (item) setStatus(item, col.status);
               }}
-              className={`bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-200 dark:border-gray-700 border-t-4 ${
+              className={`bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700 border-t-4 ${
                 COLUMN_COLORS[col.status] || 'border-t-gray-400'
               } p-3 min-h-[200px] transition-colors ${
                 dragOver === col.status ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20' : ''

@@ -167,8 +167,7 @@ interface ListToolbarProps {
 }
 
 export function ListToolbar({ state, set, statuses, tags, hasActiveFilter, placeholder }: ListToolbarProps) {
-  const selectClass =
-    'px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const selectClass = 'field';
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -177,7 +176,7 @@ export function ListToolbar({ state, set, statuses, tags, hasActiveFilter, place
         value={state.q}
         onChange={(e) => set({ q: e.target.value })}
         placeholder={placeholder || '搜索标题 / 标签...'}
-        className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="input flex-1 min-w-[180px]"
       />
       {statuses.length > 0 && (
         <select
@@ -218,7 +217,7 @@ export function ListToolbar({ state, set, statuses, tags, hasActiveFilter, place
       {hasActiveFilter && (
         <button
           onClick={() => set({ q: '', status: '', tag: '' })}
-          className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+          className="px-2 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
         >
           清除筛选
         </button>
@@ -252,7 +251,7 @@ export function LoadMoreRow({
       <button
         onClick={onLoadMore}
         disabled={loading}
-        className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+        className="btn-ghost"
       >
         {loading ? '加载中...' : `加载更多（已显示 ${loadedCount} / ${total} 条）`}
       </button>

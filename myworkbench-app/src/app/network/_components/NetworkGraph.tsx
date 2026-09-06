@@ -404,7 +404,7 @@ export function NetworkGraph() {
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            className={`w-full h-[460px] lg:h-[600px] rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 touch-none select-none ${
+            className={`w-full h-[460px] lg:h-[600px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 touch-none select-none ${
               dragModeRef.current === 'pan' ? 'cursor-grabbing' : 'cursor-grab'
             }`}
           >
@@ -480,7 +480,7 @@ export function NetworkGraph() {
 
         {/* 信息面板 */}
         {selected && (
-          <aside className="lg:w-96 shrink-0 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:max-h-[600px] overflow-y-auto">
+          <aside className="lg:w-96 shrink-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 lg:max-h-[600px] overflow-y-auto">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2">

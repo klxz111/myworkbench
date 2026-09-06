@@ -115,7 +115,7 @@ export function EventEditClient({ id }: EventEditProps) {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">编辑事件</h1>
         <Link
           href={`/events/${id}`}
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="btn-secondary"
         >
           取消
         </Link>
@@ -127,7 +127,7 @@ export function EventEditClient({ id }: EventEditProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="card p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">标题</label>
           <input
@@ -255,13 +255,13 @@ export function EventEditClient({ id }: EventEditProps) {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="btn-primary"
           >
             {saving ? '保存中...' : '保存'}
           </button>
           <Link
             href={`/events/${id}`}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="btn-secondary"
           >
             取消
           </Link>

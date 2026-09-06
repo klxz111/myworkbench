@@ -196,7 +196,7 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 bg-black/50 z-[100] flex items-start justify-center pt-[12vh] px-4" onMouseDown={close}>
       <div
-        className="w-full max-w-xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+        className="w-full max-w-xl card shadow-xl overflow-hidden"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="border-b border-gray-200 dark:border-gray-700 p-3">

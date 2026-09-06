@@ -2,21 +2,16 @@ import { Suspense } from 'react';
 import { FileTree } from '@/app/workspace/_components/FileTree';
 import { RecentFiles } from '@/app/workspace/_components/RecentFiles';
 import { NewFileDialog } from '@/app/workspace/_components/NewFileDialog';
+import { PageHeader } from '@/components/ui';
 
 export default function WorkspacePage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            工作台
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            自由 Markdown 文档管理空间
-          </p>
-        </div>
-        <NewFileDialog />
-      </div>
+      <PageHeader
+        title="工作台"
+        description="自由 Markdown 文档管理空间"
+        actions={<NewFileDialog />}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">

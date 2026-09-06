@@ -37,7 +37,7 @@ export function EntityFieldsDisplay({ entityType, frontmatter }: EntityFieldsDis
   if (visible.length === 0) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div className="card overflow-hidden">
       <h3 className="px-6 pt-5 pb-3 text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700">
         详细信息
       </h3>

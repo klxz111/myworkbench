@@ -86,7 +86,7 @@ export function RadarDetailClient({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -128,7 +128,7 @@ export function RadarDetailClient({ id }: { id: string }) {
           <div className="flex gap-3">
             <Link
               href={`/entities/radar/${id}/edit`}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="btn-primary"
             >
               编辑
             </Link>
@@ -141,7 +141,7 @@ export function RadarDetailClient({ id }: { id: string }) {
             </button>
             <Link
               href="/radar"
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="btn-secondary"
             >
               ← 返回
             </Link>
@@ -150,7 +150,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       </div>
 
       {radar.impact && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             影响
           </h3>
@@ -159,7 +159,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       )}
 
       {radar.content && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             详情
           </h3>
@@ -168,7 +168,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       )}
 
       {(radar.linked_events && radar.linked_events.length > 0) && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             关联事件
           </h3>
@@ -181,7 +181,7 @@ export function RadarDetailClient({ id }: { id: string }) {
       )}
 
       {(radar.linked_decisions && radar.linked_decisions.length > 0) && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             关联决策
           </h3>

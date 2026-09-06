@@ -72,7 +72,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{organization.title}</h2>
@@ -98,7 +98,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
             )}
           </div>
           <div className="flex gap-3">
-            <Link href={`/organizations/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <Link href={`/organizations/${id}/edit`} className="btn-primary">
               编辑
             </Link>
             <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">
@@ -109,7 +109,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
       </div>
 
       {(organization.linked_people && organization.linked_people.length > 0) && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">关联人员</h3>
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {organization.linked_people.map((personId) => (
@@ -124,7 +124,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
       )}
 
       {(organization.linked_opportunities && organization.linked_opportunities.length > 0) && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">关联机会</h3>
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {organization.linked_opportunities.map((oppId) => (
@@ -142,7 +142,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
       <BacklinksSection entityType="organization" entityId={id} />
 
       <div className="flex gap-4">
-        <Link href="/organizations" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+        <Link href="/organizations" className="btn-secondary">
           ← 返回组织列表
         </Link>
       </div>

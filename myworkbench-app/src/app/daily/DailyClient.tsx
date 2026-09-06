@@ -95,7 +95,7 @@ export function DailyClient() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <aside className="lg:col-span-1 space-y-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="card p-4">
           <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">今日</p>
           {existsToday === null ? (
             <p className="text-xs text-gray-400">检查中...</p>
@@ -121,7 +121,7 @@ export function DailyClient() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="card p-4">
           <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">历史日记</p>
           {notes.length === 0 ? (
             <p className="text-xs text-gray-400">暂无历史日记。</p>
@@ -153,7 +153,7 @@ export function DailyClient() {
         {selectedPath ? (
           <MarkdownEditor key={selectedPath} filePath={selectedPath} />
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-10 text-center">
+          <div className="card p-10 text-center">
             <p className="text-gray-500 dark:text-gray-400">
               选择或创建一篇日记开始记录。日记正文支持 [[entity-id]] 链接实体。
             </p>

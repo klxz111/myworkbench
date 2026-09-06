@@ -57,7 +57,7 @@ export function RecentFiles() {
 
   if (files.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">最近文件</h3>
         <p className="text-gray-500 text-sm">工作区为空，点击「新建文件」开始</p>
       </div>
@@ -65,7 +65,7 @@ export function RecentFiles() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="card p-6">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">最近文件</h3>
       <div className="space-y-2">
         {files.map((file) => (

@@ -70,7 +70,7 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{strategy.title}</h2>
@@ -85,28 +85,28 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
             )}
           </div>
           <div className="flex gap-3">
-            <Link href={`/entities/strategy/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">编辑</Link>
+            <Link href={`/entities/strategy/${id}/edit`} className="btn-primary">编辑</Link>
             <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
           </div>
         </div>
       </div>
 
       {strategy.vision && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">愿景</h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{strategy.vision}</p>
         </section>
       )}
 
       {strategy.mission && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">使命</h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{strategy.mission}</p>
         </section>
       )}
 
       {strategy.objectives && strategy.objectives.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">目标</h3>
           <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
             {strategy.objectives.map((o, i) => <li key={i}>{o}</li>)}
@@ -115,7 +115,7 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
       )}
 
       {strategy.constraints && strategy.constraints.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">约束</h3>
           <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
             {strategy.constraints.map((c, i) => <li key={i}>{c}</li>)}
@@ -124,7 +124,7 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
       )}
 
       {strategy.key_results && strategy.key_results.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">关键结果</h3>
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {strategy.key_results.map((kr, i) => (
@@ -141,7 +141,7 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
       <BacklinksSection entityType="strategy" entityId={id} />
 
       <div className="flex gap-4">
-        <Link href="/strategy" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">← 返回策略列表</Link>
+        <Link href="/strategy" className="btn-secondary">← 返回策略列表</Link>
       </div>
     </div>
   );

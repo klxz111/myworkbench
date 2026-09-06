@@ -55,7 +55,7 @@ export function GenericCreateClient({ type }: GenericCreateProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="card p-6">
       <EntityForm
         type={type}
         onSuccess={handleSave}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 import { useListControls, ListToolbar } from '@/components/ListControls';
 
 interface Entity {
@@ -72,8 +73,12 @@ export function OrganizationsClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+      <PageHeader
+        title="组织"
+        description="目标院校、实验室与机构档案"
+        actions={<Link href="/organizations/new" className="btn-primary">新建组织</Link>}
+      />
+      <div className="flex items-center gap-2 card p-1 self-start">
           {[
             { key: 'all', label: `全部 (${organizations.length})` },
             { key: 'active', label: `活跃 (${activeCount})` },
@@ -91,20 +96,13 @@ export function OrganizationsClient() {
               {item.label}
             </button>
           ))}
-        </div>
-        <Link
-          href="/organizations/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          新建组织
-        </Link>
       </div>
 
       {organizations.length > 0 && (
         <ListToolbar {...controls.toolbar} statuses={[]} placeholder="搜索组织名称 / 标签..." />
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             暂无组织条目。

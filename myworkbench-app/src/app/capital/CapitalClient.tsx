@@ -107,7 +107,7 @@ export function CapitalClient() {
         <ListToolbar {...controls.toolbar} statuses={[]} placeholder="搜索资本条目 / 标签..." />
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {filtered.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
                暂无资本条目。创建您的第一个资本条目以开始追踪。

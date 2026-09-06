@@ -232,7 +232,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
                 <button
                   type="button"
                   onClick={addTag}
-                   className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                   className="btn-secondary"
                 >
                   添加
                 </button>
@@ -250,7 +250,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="btn-primary"
         >
           {loading ? '保存中...' : initialData?.id ? '更新' : '创建'}
         </button>
@@ -258,7 +258,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
           <button
             type="button"
             onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+          className="btn-secondary"
         >
           取消
         </button>

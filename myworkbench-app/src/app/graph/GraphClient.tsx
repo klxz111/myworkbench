@@ -164,7 +164,7 @@ export function GraphClient() {
 
   if (graphData.nodes.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
+      <div className="card p-12 text-center">
         <p className="text-gray-500 text-lg">No entities yet. Create some evidence, beliefs, or decisions to see the chain.</p>
       </div>
     );
@@ -172,7 +172,7 @@ export function GraphClient() {
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+      className="card overflow-hidden"
       style={{ height: 'var(--graph-h)', minHeight: '500px' }}
     >
       <ReactFlow

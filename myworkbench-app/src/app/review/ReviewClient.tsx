@@ -100,7 +100,7 @@ export function ReviewClient() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-center">
+          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-center">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{s.value}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{s.label}</div>
           </div>
@@ -108,17 +108,17 @@ export function ReviewClient() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3">本周新建</h2>
           <GroupList groups={data.created} />
         </section>
 
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3">本周更新</h2>
           <GroupList groups={data.updated} />
         </section>
 
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3">本周判定结果</h2>
           {data.decisions_judged.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500 py-1">本周没有记录决策结果。</p>
@@ -138,7 +138,7 @@ export function ReviewClient() {
           )}
         </section>
 
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-3">未来 7 天需要关注</h2>
           {data.due_soon.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500 py-1">未来一周没有到期事项。</p>

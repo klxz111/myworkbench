@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface EventItem {
@@ -34,21 +35,17 @@ export function EventClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">事件</h1>
-        <Link
-          href="/entities/event/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          新建事件
-        </Link>
-      </div>
+      <PageHeader
+        title="事件"
+        description="会议、评审与例行安排，循环事件会在日历展开"
+        actions={<Link href="/entities/event/new" className="btn-primary">新建事件</Link>}
+      />
 
       {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索事件标题 / 标签..." />
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {total === 0 ? (
           <div className="p-6 text-center text-gray-500">
             暂无事件。创建您的第一个事件以开始。

@@ -48,7 +48,7 @@ export function EvidenceClient() {
       {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索证据标题 / 标签..." />
       )}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
       {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无证据。添加观察、文献或实验。

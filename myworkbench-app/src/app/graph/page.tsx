@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { PageHeader } from '@/components/ui';
 import { GraphClient } from './GraphClient';
 
 export const dynamic = 'force-dynamic';
@@ -6,16 +7,7 @@ export const dynamic = 'force-dynamic';
 export default function GraphPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Evidence Chain
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Visualize connections between Evidence, Belief, Decision, and Project
-          </p>
-        </div>
-      </div>
+      <PageHeader title="证据链" description="可视化证据、信念、决策与项目之间的连接" />
       <Suspense fallback={<div className="text-gray-500">Loading graph...</div>}>
         <GraphClient />
       </Suspense>

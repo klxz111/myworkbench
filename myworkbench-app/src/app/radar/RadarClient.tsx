@@ -123,7 +123,7 @@ export function RadarClient() {
         <ListToolbar {...controls.toolbar} statuses={[]} placeholder="搜索雷达条目 / 标签..." />
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             暂无雷达条目。

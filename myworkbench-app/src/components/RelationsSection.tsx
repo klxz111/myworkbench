@@ -154,7 +154,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
 
   if (relations.length === 0 && !showAddDialog) {
     return (
-      <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <section className="card p-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             关联实体
@@ -172,7 +172,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
   }
 
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <section className="card p-6">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           关联实体
@@ -303,7 +303,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
                 <button
                   onClick={handleAddRelation}
                   disabled={adding || !selectedEntity}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="btn-primary"
                 >
                   {adding ? '添加中...' : '添加'}
                 </button>

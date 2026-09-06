@@ -100,7 +100,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <EntityForm
           type={type}
           initialData={initialData}

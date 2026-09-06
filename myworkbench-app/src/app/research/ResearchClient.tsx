@@ -61,7 +61,7 @@ export function ResearchClient() {
         {total > 0 && (
           <ListToolbar {...controlsR.toolbar} placeholder="搜索研究主题 / 标签..." />
         )}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="card">
           {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无研究主题。
@@ -135,7 +135,7 @@ export function ResearchClient() {
         {evidence.length > 0 && (
           <ListToolbar {...controlsE.toolbar} placeholder="搜索证据 / 标签..." />
         )}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="card">
           {evidence.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无证据条目。

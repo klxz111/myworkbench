@@ -86,7 +86,7 @@ export function DecisionEditClient({ id }: DecisionEditProps) {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <EntityForm
           type="decision"
           initialData={{

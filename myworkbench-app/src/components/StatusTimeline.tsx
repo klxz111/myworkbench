@@ -11,7 +11,7 @@ interface StatusTimelineProps {
 
 export function StatusTimeline({ createdAt, updatedAt, status, children }: StatusTimelineProps) {
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <section className="card p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">状态与时间线</h3>
       <div className="space-y-3">
         <div className="flex items-center gap-3 text-sm">

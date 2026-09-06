@@ -47,7 +47,7 @@ export function DataManagement() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <div>
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">导出备份</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

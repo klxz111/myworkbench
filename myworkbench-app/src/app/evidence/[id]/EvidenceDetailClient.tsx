@@ -71,7 +71,7 @@ export function EvidenceDetailClient({ id }: EvidenceDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{evidence.title}</h2>
@@ -88,14 +88,14 @@ export function EvidenceDetailClient({ id }: EvidenceDetailProps) {
             )}
           </div>
           <div className="flex gap-3">
-            <Link href={`/entities/evidence/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">编辑</Link>
+            <Link href={`/entities/evidence/${id}/edit`} className="btn-primary">编辑</Link>
             <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
           </div>
         </div>
       </div>
 
       {evidence.source_url && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">来源链接</h3>
           <a href={evidence.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline break-all">{evidence.source_url}</a>
         </section>
@@ -105,7 +105,7 @@ export function EvidenceDetailClient({ id }: EvidenceDetailProps) {
       <BacklinksSection entityType="evidence" entityId={id} />
 
       <div className="flex gap-4">
-        <Link href="/evidence" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">← 返回证据列表</Link>
+        <Link href="/evidence" className="btn-secondary">← 返回证据列表</Link>
       </div>
     </div>
   );

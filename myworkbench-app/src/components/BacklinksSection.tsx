@@ -51,7 +51,7 @@ export function BacklinksSection({ entityType, entityId }: BacklinksSectionProps
   if (contentLinks.length === 0 && relationLinks.length === 0) return null;
 
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <section className="card p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
         反向链接
       </h3>

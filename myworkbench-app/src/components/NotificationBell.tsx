@@ -41,7 +41,12 @@ function saveNotifiedIds(ids: Set<string>) {
   }
 }
 
-export function NotificationBell() {
+/**
+ * 到期提醒铃铛。
+ * placement：弹层锚定方向——'right'（默认，弹层右对齐按钮，适合顶栏右侧）；
+ * 'left'（弹层左对齐按钮向右展开，适合侧边栏/抽屉等靠左位置，避免伸出屏幕被截断）。
+ */
+export function NotificationBell({ placement = 'right' }: { placement?: 'right' | 'left' }) {
   const [data, setData] = useState<NotificationsResponse | null>(null);
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -161,7 +166,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-y-auto">
+        <div className={`absolute mt-2 w-80 card shadow-lg z-50 max-h-96 overflow-y-auto scroll-thin ${placement === 'left' ? 'left-0' : 'right-0'}`}>
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">
               到期提醒（{total}）

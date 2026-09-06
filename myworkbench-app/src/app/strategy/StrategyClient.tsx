@@ -37,7 +37,7 @@ export function StrategyClient() {
       {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索策略标题 / 标签..." />
       )}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {total === 0 ? (
           <div className="p-6 text-center text-gray-500">
             暂无策略。请定义您的长期方向。

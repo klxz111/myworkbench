@@ -70,7 +70,7 @@ export function CapitalDetailClient({ id }: CapitalDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{capital.title}</h2>
@@ -88,7 +88,7 @@ export function CapitalDetailClient({ id }: CapitalDetailProps) {
             )}
           </div>
           <div className="flex gap-3">
-            <Link href={`/entities/capital/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">编辑</Link>
+            <Link href={`/entities/capital/${id}/edit`} className="btn-primary">编辑</Link>
             <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
           </div>
         </div>
@@ -98,7 +98,7 @@ export function CapitalDetailClient({ id }: CapitalDetailProps) {
       <BacklinksSection entityType="capital" entityId={id} />
 
       <div className="flex gap-4">
-        <Link href="/capital" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">← 返回资本列表</Link>
+        <Link href="/capital" className="btn-secondary">← 返回资本列表</Link>
       </div>
     </div>
   );

@@ -1,14 +1,10 @@
 import { BoardClient } from './BoardClient';
+import { PageHeader } from '@/components/ui';
 
 export default function BoardPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">看板</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          任务、项目、机会与实验的状态视图
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="看板" description="任务、项目、机会与实验的状态视图" />
       <BoardClient />
     </div>
   );

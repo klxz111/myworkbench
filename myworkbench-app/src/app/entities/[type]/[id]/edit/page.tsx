@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { PageHeader } from '@/components/ui';
 import { GenericEditClient } from './GenericEditClient';
 
 export const dynamic = 'force-dynamic';
@@ -26,16 +27,10 @@ export default async function GenericEditPage({
   const { type, id } = await params;
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            编辑{TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            更新{TYPE_LABELS[type] || type}详情
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={`编辑${TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}`}
+        description={`更新${TYPE_LABELS[type] || type}详情`}
+      />
         <Suspense fallback={<div className="text-gray-500">加载编辑表单中...</div>}>
         <GenericEditClient type={type} id={id} />
       </Suspense>

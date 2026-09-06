@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 import { EvidenceDetailClient } from './EvidenceDetailClient';
 
 export const dynamic = 'force-dynamic';
@@ -12,24 +13,11 @@ export default async function EvidenceDetailPage({
   const { id } = await params;
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            证据
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            证据详情
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/evidence"
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-          >
-            ← 返回
-          </Link>
-        </div>
-      </div>
+            <PageHeader
+        title="证据"
+        description="证据详情"
+        actions={<Link href="/evidence" className="btn-secondary">← 返回</Link>}
+      />
         <Suspense fallback={<div className="text-gray-500">加载证据中...</div>}>
         <EvidenceDetailClient id={id} />
       </Suspense>

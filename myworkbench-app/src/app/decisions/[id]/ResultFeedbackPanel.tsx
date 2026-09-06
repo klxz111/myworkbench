@@ -146,7 +146,7 @@ export function ResultFeedbackPanel({
   const recorded = !!verdict;
 
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <section className="card p-6">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           结果反哺闭环
@@ -270,13 +270,13 @@ export function ResultFeedbackPanel({
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+              className="btn-primary"
             >
               {submitting ? '提交中...' : recorded ? '更新并反哺' : '记录并反哺'}
             </button>
             <button
               onClick={() => setOpen(false)}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+              className="btn-secondary"
             >
               取消
             </button>

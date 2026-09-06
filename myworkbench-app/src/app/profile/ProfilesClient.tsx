@@ -37,7 +37,7 @@ export function ProfilesClient() {
       {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索档案标题 / 标签..." />
       )}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
       {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无档案。

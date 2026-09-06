@@ -70,7 +70,7 @@ export function GenericCreateClient({ type }: GenericCreateProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="card p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           新建{TYPE_LABELS[type] || type}

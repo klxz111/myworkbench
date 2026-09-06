@@ -170,7 +170,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -203,7 +203,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
           <div className="flex gap-3">
             <Link
               href={`/decisions/${id}/edit`}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="btn-primary"
             >
               编辑
             </Link>
@@ -327,7 +327,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
         </section>
 
       {decision.context && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             背景
           </h3>
@@ -338,7 +338,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       )}
 
       {decision.question && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             问题
           </h3>
@@ -347,7 +347,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       )}
 
       {decision.options && decision.options.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             选项
           </h3>
@@ -380,7 +380,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       )}
 
       {decision.current_belief && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             当前信念
           </h3>
@@ -398,7 +398,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       )}
 
       {decision.actual_result && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             实际结果
           </h3>
@@ -407,7 +407,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       )}
 
       {decision.belief_update && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             信念更新
           </h3>
@@ -434,7 +434,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       <div className="flex gap-4">
         <Link
           href="/decisions"
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="btn-secondary"
         >
           ← 返回决策列表
         </Link>

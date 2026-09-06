@@ -196,7 +196,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
           <button
             onClick={handleSave}
             disabled={saving || !hasChanges}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="btn-primary"
           >
             {saving ? '保存中...' : '保存'}
           </button>
@@ -208,20 +208,20 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
           </button>
           <a
             href={`/api/workspace/export?path=${encodeURIComponent(filePath)}&format=md`}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="btn-secondary"
           >
             导出 MD
           </a>
           <a
             href={`/api/workspace/export?path=${encodeURIComponent(filePath)}&format=html`}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+            className="btn-secondary"
           >
             导出 HTML
           </a>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setFrontmatterOpen(!frontmatterOpen)}

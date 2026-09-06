@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { PageHeader } from '@/components/ui';
 import { GenericCreateClient } from './GenericCreateClient';
 
 export const dynamic = 'force-dynamic';
@@ -26,16 +27,10 @@ export default async function GenericCreatePage({
   const { type } = await params;
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            新建{TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            创建一个新的{TYPE_LABELS[type] || type}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={`新建${TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}`}
+        description={`创建一个新的${TYPE_LABELS[type] || type}`}
+      />
         <Suspense fallback={<div className="text-gray-500">加载创建表单中...</div>}>
         <GenericCreateClient type={type} />
       </Suspense>

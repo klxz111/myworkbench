@@ -43,7 +43,7 @@ export function BeliefClient() {
       {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索信念标题 / 标签..." />
       )}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
       {total === 0 ? (
           <div className="p-6 text-center text-gray-500">
           暂无信念。解读证据以建立您的信念体系。

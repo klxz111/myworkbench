@@ -103,7 +103,7 @@ export function StatsClient() {
   return (
     <div className="space-y-6">
       {/* 实体构成 */}
-      <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">实体构成</h2>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -127,7 +127,7 @@ export function StatsClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 资本趋势 */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">资本趋势</h2>
           {capitalHasData ? (
             <div className="h-64">
@@ -159,7 +159,7 @@ export function StatsClient() {
         </section>
 
         {/* 决策判定 */}
-        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">决策判定分布</h2>
           {data.decision_verdicts.length === 0 ? (
             <p className="text-sm text-gray-400 dark:text-gray-500 py-8 text-center">
@@ -203,7 +203,7 @@ export function StatsClient() {
       </div>
 
       {/* 活动热力图 */}
-      <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <section className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
           近 12 周活动
         </h2>

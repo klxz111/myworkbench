@@ -112,7 +112,7 @@ export function TasksClient() {
       )}
 
       {tasks.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500">
+        <div className="card p-6 text-center text-gray-500">
           暂无任务。在「今日」页或右上角快速添加一个任务开始。
         </div>
       ) : (

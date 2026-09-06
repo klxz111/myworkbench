@@ -1,28 +1,18 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 import { StrategyClient } from './StrategyClient';
 
 export const dynamic = 'force-dynamic';
 
 export default function StrategyPage() {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            策略
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            长期方向、时间线与战略约束
-          </p>
-        </div>
-        <Link
-          href="/strategy/new"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          新建策略
-        </Link>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="策略"
+        description="长期方向、时间线与战略约束"
+        actions={<Link href="/strategy/new" className="btn-primary">新建策略</Link>}
+      />
         <Suspense fallback={<div className="text-gray-500">加载策略中...</div>}>
         <StrategyClient />
       </Suspense>

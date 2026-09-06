@@ -66,7 +66,7 @@ export function NetworkOverview() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">人员</h2>
             <Link href="/people" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -95,7 +95,7 @@ export function NetworkOverview() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">组织</h2>
             <Link href="/organizations" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -125,7 +125,7 @@ export function NetworkOverview() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">最近关系</h2>
         {recentRelations.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">

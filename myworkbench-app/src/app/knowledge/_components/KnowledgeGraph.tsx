@@ -430,7 +430,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            className={`w-full h-[480px] lg:h-[640px] rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 touch-none select-none ${
+            className={`w-full h-[480px] lg:h-[640px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 touch-none select-none ${
               dragModeRef.current === 'pan' ? 'cursor-grabbing' : 'cursor-grab'
             }`}
           >
@@ -514,7 +514,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
         </div>
 
         {/* 侧栏 */}
-        <aside className="lg:w-96 shrink-0 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:max-h-[780px] overflow-y-auto">
+        <aside className="lg:w-96 shrink-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 lg:max-h-[780px] overflow-y-auto">
           {selected ? (
             <div>
               <div className="flex items-start justify-between gap-2">

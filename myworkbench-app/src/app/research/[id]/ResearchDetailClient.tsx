@@ -71,7 +71,7 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="card p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{research.title}</h2>
@@ -87,14 +87,14 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
             )}
           </div>
           <div className="flex gap-3">
-            <Link href={`/entities/research/${id}/edit`} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">编辑</Link>
+            <Link href={`/entities/research/${id}/edit`} className="btn-primary">编辑</Link>
             <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
           </div>
         </div>
       </div>
 
       {research.knowledge_tree && research.knowledge_tree.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">知识树定位</h3>
           <div className="flex flex-wrap gap-2">
             {research.knowledge_tree.map((name) => (
@@ -114,28 +114,28 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
       )}
 
       {research.summary && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">摘要</h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{research.summary}</p>
         </section>
       )}
 
       {research.methodology && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">方法</h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{research.methodology}</p>
         </section>
       )}
 
       {research.findings && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">发现</h3>
           <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{research.findings}</p>
         </section>
       )}
 
       {research.related_papers && research.related_papers.length > 0 && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">相关论文</h3>
           <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-1">
             {research.related_papers.map((paper, i) => <li key={i}>{paper}</li>)}
@@ -147,7 +147,7 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
       <BacklinksSection entityType="research" entityId={id} />
 
       <div className="flex gap-4">
-        <Link href="/research" className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">← 返回研究列表</Link>
+        <Link href="/research" className="btn-secondary">← 返回研究列表</Link>
       </div>
     </div>
   );

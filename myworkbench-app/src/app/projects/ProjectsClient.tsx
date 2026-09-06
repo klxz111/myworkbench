@@ -61,7 +61,7 @@ export function ProjectsClient() {
         {total > 0 && (
           <ListToolbar {...controlsP.toolbar} placeholder="搜索项目标题 / 标签..." />
         )}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="card">
           {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无项目。
@@ -134,7 +134,7 @@ export function ProjectsClient() {
         {experiments.length > 0 && (
           <ListToolbar {...controlsE.toolbar} placeholder="搜索实验标题 / 标签..." />
         )}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="card">
           {experiments.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无实验。

@@ -96,7 +96,7 @@ export function ProfileVersionsPanel({ profileId }: { profileId: string }) {
   const current = compiled?.[activeTab];
 
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <section className="card overflow-hidden">
       <div className="px-6 pt-5 pb-3 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

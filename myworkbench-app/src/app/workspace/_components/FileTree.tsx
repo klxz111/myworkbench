@@ -78,7 +78,7 @@ export function FileTree() {
   if (tree.length === 0) return <div className="text-gray-500 text-sm">工作区为空</div>;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+    <div className="card p-4">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">文件浏览器</h3>
       <div className="space-y-1">
         {tree.map((node) => (
