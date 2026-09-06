@@ -30,6 +30,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
   const [editorView, setEditorView] = useState<EditorView | null>(null);
   const [frontmatterOpen, setFrontmatterOpen] = useState(true);
   const [outlineOpen, setOutlineOpen] = useState(true);
+  const [uploadingImages, setUploadingImages] = useState(0);
   const previewRef = useRef<HTMLDivElement>(null);
   const isDark = useIsDarkTheme();
 
@@ -46,6 +47,42 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
   const scrollToHeading = (index: number) => {
     const nodes = previewRef.current?.querySelectorAll('h1, h2, h3, h4');
     nodes?.[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  /** 粘贴图片：上传到 /api/upload 后在光标处插入资产链接（非图片粘贴不拦截） */
+  const handleImagePaste = (event: ClipboardEvent, view: EditorView): boolean => {
+    const images = Array.from(event.clipboardData?.files || []).filter((f) => f.type.startsWith('image/'));
+    if (images.length === 0) return false;
+    event.preventDefault();
+    (async () => {
+      setUploadingImages((n) => n + 1);
+      try {
+        for (const file of images) {
+          try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body: fd });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || '上传失败');
+            }
+            const data = (await res.json()) as { path: string };
+            const alt = file.name.replace(/\.[^.]+$/, '') || 'image';
+            const text = `![${alt}](/api/asset?path=${encodeURIComponent(data.path)})`;
+            const sel = view.state.selection.main;
+            view.dispatch({
+              changes: { from: sel.from, to: sel.to, insert: text },
+              selection: { anchor: sel.from + text.length },
+            });
+          } catch (err) {
+            alert(err instanceof Error ? err.message : '图片上传失败');
+          }
+        }
+      } finally {
+        setUploadingImages((n) => Math.max(0, n - 1));
+      }
+    })();
+    return true;
   };
 
   useEffect(() => {
@@ -101,6 +138,9 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
             setBody(update.state.doc.toString());
             setHasChanges(true);
           }
+        }),
+        EditorView.domEventHandlers({
+          paste: handleImagePaste,
         }),
         EditorView.theme({
           '&': { height: '100%', fontSize: '14px' },
@@ -322,7 +362,11 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
         </div>
         <div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-200 dark:border-gray-700 text-[11px] text-gray-400 dark:text-gray-500">
           <span>
-            约 {words.toLocaleString()} 字 · {chars.toLocaleString()} 字符
+            {uploadingImages > 0 ? (
+              <span className="text-blue-600 dark:text-blue-400">图片上传中...</span>
+            ) : (
+              <>约 {words.toLocaleString()} 字 · {chars.toLocaleString()} 字符</>
+            )}
           </span>
           <span>{hasChanges ? '● 未保存（3 秒后自动保存）' : lastSaved ? `已保存 ${lastSaved}` : '无改动'}</span>
         </div>

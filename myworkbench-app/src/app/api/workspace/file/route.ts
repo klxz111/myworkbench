@@ -82,9 +82,16 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    fs.unlinkSync(/*turbopackIgnore: true*/ fullPath);
+    // 软删：移入 workspace/.trash/<时间戳>-<原相对路径（/ → __）>，可经 /api/workspace/trash 恢复
+    const trashDir = safeJoin(root, '.trash');
+    fs.mkdirSync(/*turbopackIgnore: true*/ trashDir, { recursive: true });
+    const now = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    const ts = `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+    const trashName = `${ts}-${relPath.replace(/[\\/]/g, '__')}`;
+    fs.renameSync(/*turbopackIgnore: true*/ fullPath, path.join(trashDir, trashName));
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, trashed: trashName });
   } catch (error) {
     console.error('Failed to delete workspace file:', error);
     return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });
