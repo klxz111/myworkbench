@@ -16,6 +16,7 @@ interface Feed {
   url: string;
   site_url: string | null;
   description: string | null;
+  category: string;
   last_fetched_at: string | null;
   last_error: string | null;
   unread: number;
@@ -31,6 +32,22 @@ interface Entry {
   summary: string | null;
   read: number;
   feed_title: string;
+}
+
+const CATEGORIES = [
+  { key: 'ai', label: 'AI' },
+  { key: 'quant', label: '金融量化' },
+  { key: 'invest', label: '投资' },
+];
+
+function categoryLabel(category: string): string {
+  return CATEGORIES.find((c) => c.key === category)?.label || '未分类';
+}
+
+/** 分类徽章循环切换顺序：ai → quant → invest → 未分类 → ai */
+function nextCategory(category: string): string {
+  const keys = [...CATEGORIES.map((c) => c.key), ''];
+  return keys[(keys.indexOf(category) + 1) % keys.length];
 }
 
 const PAGE_SIZE = 50;
@@ -53,9 +70,11 @@ export function RssClient() {
   const [loading, setLoading] = useState(true);
   const [selectedFeed, setSelectedFeed] = useState<number | null>(null);
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [catFilter, setCatFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [newUrl, setNewUrl] = useState('');
+  const [newCategory, setNewCategory] = useState('');
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -80,6 +99,7 @@ export function RssClient() {
     try {
       const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
       if (selectedFeed !== null) params.set('feedId', String(selectedFeed));
+      if (selectedFeed === null && catFilter) params.set('category', catFilter);
       if (unreadOnly) params.set('unread', '1');
       const res = await fetch(`/api/rss/entries?${params}`);
       if (res.ok) {
@@ -90,7 +110,7 @@ export function RssClient() {
     } finally {
       setLoading(false);
     }
-  }, [selectedFeed, unreadOnly]);
+  }, [selectedFeed, unreadOnly, catFilter]);
 
   useEffect(() => {
     loadEntries();
@@ -133,13 +153,14 @@ export function RssClient() {
       const res = await fetch('/api/rss/feeds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, category: newCategory }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || '添加失败');
       }
       setNewUrl('');
+      setNewCategory('');
       setAddFormOpen(false);
       await loadFeeds();
       await loadEntries();
@@ -160,6 +181,23 @@ export function RssClient() {
       await loadEntries();
     } catch {
       alert('删除订阅失败');
+    }
+  };
+
+  const cycleCategory = async (feed: Feed) => {
+    const next = nextCategory(feed.category);
+    // 乐观更新，失败回滚
+    const prev = feed.category;
+    setFeeds((fs) => fs.map((f) => (f.id === feed.id ? { ...f, category: next } : f)));
+    try {
+      const res = await fetch(`/api/rss/feeds/${feed.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: next }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setFeeds((fs) => fs.map((f) => (f.id === feed.id ? { ...f, category: prev } : f)));
     }
   };
 
@@ -276,15 +314,23 @@ export function RssClient() {
 
       {addFormOpen && (
         <div className="card p-5 space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               type="text"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !adding && handleAdd()}
               placeholder="粘贴 RSS / Atom 地址，例如 http://rss.arxiv.org/rss/cs.LG"
-              className="input flex-1 min-w-0"
+              className="input flex-1 min-w-[220px]"
             />
+            <select className="field w-auto" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
+              <option value="">未分类</option>
+              {CATEGORIES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
             <button onClick={handleAdd} disabled={adding || !newUrl.trim()} className="btn-primary shrink-0">
               {adding ? '抓取中...' : '订阅'}
             </button>
@@ -306,56 +352,83 @@ export function RssClient() {
                 还没有订阅。点右上角「添加订阅」粘贴 RSS 地址。
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                <li>
-                  <button
-                    onClick={() => setSelectedFeed(null)}
-                    className={`w-full flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
-                      selectedFeed === null
-                        ? 'text-blue-700 dark:text-blue-300 font-medium'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <span className="flex-1">全部</span>
-                    {totalUnread > 0 && (
-                      <span className="badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                        {totalUnread}
-                      </span>
-                    )}
-                  </button>
-                </li>
-                {feeds.map((feed) => (
-                  <li key={feed.id} className="flex items-center gap-1">
+              <div className="space-y-4">
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <li>
                     <button
-                      onClick={() => setSelectedFeed(feed.id)}
-                      className={`flex-1 min-w-0 flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
-                        selectedFeed === feed.id
+                      onClick={() => setSelectedFeed(null)}
+                      className={`w-full flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
+                        selectedFeed === null
                           ? 'text-blue-700 dark:text-blue-300 font-medium'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                       }`}
-                      title={feed.last_error ? `上次抓取出错：${feed.last_error}` : feed.url}
                     >
-                      <span className="flex-1 min-w-0 truncate">{feed.title}</span>
-                      {feed.last_error && (
-                        <span className="shrink-0 h-1.5 w-1.5 rounded-full bg-red-500" title={`抓取出错：${feed.last_error}`} />
-                      )}
-                      {feed.unread > 0 && (
+                      <span className="flex-1">全部</span>
+                      {totalUnread > 0 && (
                         <span className="badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                          {feed.unread}
+                          {totalUnread}
                         </span>
                       )}
                     </button>
-                    <button
-                      onClick={() => handleDelete(feed)}
-                      title="取消订阅"
-                      aria-label={`取消订阅 ${feed.title}`}
-                      className="shrink-0 w-6 h-6 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 text-sm leading-none"
-                    >
-                      ✕
-                    </button>
                   </li>
-                ))}
-              </ul>
+                </ul>
+                {[...CATEGORIES.map((c) => ({ key: c.key as string, label: c.label })), { key: '', label: '未分类' }].map(
+                  (group) => {
+                    const groupFeeds = feeds.filter((f) => (f.category || '') === group.key);
+                    if (groupFeeds.length === 0) return null;
+                    return (
+                      <div key={group.key || 'none'}>
+                        <p className="px-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                          {group.label}
+                        </p>
+                        <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {groupFeeds.map((feed) => (
+                            <li key={feed.id} className="flex items-center gap-1">
+                              <button
+                                onClick={() => setSelectedFeed(feed.id)}
+                                className={`flex-1 min-w-0 flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
+                                  selectedFeed === feed.id
+                                    ? 'text-blue-700 dark:text-blue-300 font-medium'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                }`}
+                                title={feed.last_error ? `上次抓取出错：${feed.last_error}` : feed.url}
+                              >
+                                <span className="flex-1 min-w-0 truncate">{feed.title}</span>
+                                {feed.last_error && (
+                                  <span
+                                    className="shrink-0 h-1.5 w-1.5 rounded-full bg-red-500"
+                                    title={`抓取出错：${feed.last_error}`}
+                                  />
+                                )}
+                                {feed.unread > 0 && (
+                                  <span className="badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                    {feed.unread}
+                                  </span>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => cycleCategory(feed)}
+                                title="点击切换分类"
+                                className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/40 dark:hover:text-blue-300"
+                              >
+                                {categoryLabel(feed.category)}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(feed)}
+                                title="取消订阅"
+                                aria-label={`取消订阅 ${feed.title}`}
+                                className="shrink-0 w-6 h-6 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 text-sm leading-none"
+                              >
+                                ✕
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
             )}
           </section>
         </div>
@@ -381,6 +454,23 @@ export function RssClient() {
                 </button>
               ))}
             </div>
+            {selectedFeed === null && (
+              <div className="flex items-center gap-2 card p-1">
+                {[{ key: '', label: '全部分类' }, ...CATEGORIES].map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setCatFilter(opt.key)}
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      catFilter === opt.key
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <span className="text-xs text-gray-400 dark:text-gray-500">
               {selectedFeedTitle ? `${selectedFeedTitle} · ` : ''}
               {loading ? '加载中...' : `${total} 条${unreadOnly ? '未读' : ''}`}

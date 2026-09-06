@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const feedId = Number(searchParams.get('feedId') || '');
     const unreadOnly = searchParams.get('unread') === '1';
+    const category = searchParams.get('category') || '';
     const limit = Math.min(Math.max(Number(searchParams.get('limit') || '50'), 1), 200);
     const offset = Math.max(Number(searchParams.get('offset') || '0'), 0);
 
@@ -30,6 +31,10 @@ export async function GET(request: NextRequest) {
       where.push('e.feed_id = ?');
       args.push(feedId);
     }
+    if (category) {
+      where.push('f.category = ?');
+      args.push(category);
+    }
     if (unreadOnly) {
       where.push('e.read = 0');
     }
@@ -37,7 +42,9 @@ export async function GET(request: NextRequest) {
 
     const db = initDb();
     const total = (
-      db.prepare(`SELECT COUNT(*) AS c FROM rss_entries e ${whereSql}`).get(...args) as { c: number }
+      db
+        .prepare(`SELECT COUNT(*) AS c FROM rss_entries e JOIN rss_feeds f ON f.id = e.feed_id ${whereSql}`)
+        .get(...args) as { c: number }
     ).c;
     const items = db
       .prepare(

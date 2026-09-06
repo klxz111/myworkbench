@@ -50,12 +50,30 @@ export const ENTRY_KEEP_LIMIT = 300;
 /** 惰性刷新 TTL（分钟）：超过该时长未抓取的源由前端触发 refresh */
 export const STALE_TTL_MINUTES = 30;
 
+/** 订阅源分类（AI / 金融量化 / 投资；空串=未分类） */
+export const RSS_CATEGORIES = [
+  { key: 'ai', label: 'AI' },
+  { key: 'quant', label: '金融量化' },
+  { key: 'invest', label: '投资' },
+] as const;
+
+export type RssCategoryKey = (typeof RSS_CATEGORIES)[number]['key'];
+
+export function isValidCategory(category: string): boolean {
+  return category === '' || RSS_CATEGORIES.some((c) => c.key === category);
+}
+
+export function categoryLabel(category: string): string {
+  return RSS_CATEGORIES.find((c) => c.key === category)?.label || '未分类';
+}
+
 export interface FeedRow {
   id: number;
   title: string;
   url: string;
   site_url: string | null;
   description: string | null;
+  category: string;
   created_at: string;
   last_fetched_at: string | null;
   last_error: string | null;
@@ -179,9 +197,13 @@ export async function fetchFeed(feed: { id: number; url: string; title: string }
 }
 
 /** 添加订阅：先首抓校验，成功才入库（失败返回错误，不留半截记录） */
-export async function addFeed(rawUrl: string): Promise<{ ok: true; feed: FeedRow } | { ok: false; error: string }> {
+export async function addFeed(
+  rawUrl: string,
+  category = ''
+): Promise<{ ok: true; feed: FeedRow } | { ok: false; error: string }> {
   const url = rawUrl.trim();
   if (!isValidFeedUrl(url)) return { ok: false, error: '请填写 http(s):// 开头的 RSS/Atom 地址' };
+  if (!isValidCategory(category)) return { ok: false, error: '无效的分类' };
 
   const db = initDb();
   const existing = db.prepare('SELECT id FROM rss_feeds WHERE url = ?').get(url);
@@ -193,8 +215,16 @@ export async function addFeed(rawUrl: string): Promise<{ ok: true; feed: FeedRow
       return { ok: false, error: '该地址不是有效的 RSS/Atom 源（没有解析到条目）' };
     }
     const info = db
-      .prepare(`INSERT INTO rss_feeds (title, url, site_url, description, last_fetched_at) VALUES (?, ?, ?, ?, datetime('now'))`)
-      .run(parsed.title?.trim() || url, url, typeof parsed.link === 'string' ? parsed.link : null, parsed.description ? stripHtml(parsed.description) : null);
+      .prepare(
+        `INSERT INTO rss_feeds (title, url, site_url, description, category, last_fetched_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`
+      )
+      .run(
+        parsed.title?.trim() || url,
+        url,
+        typeof parsed.link === 'string' ? parsed.link : null,
+        parsed.description ? stripHtml(parsed.description) : null,
+        category
+      );
     const feedId = Number(info.lastInsertRowid);
 
     const upsert = db.prepare(
@@ -237,6 +267,14 @@ export function removeFeed(id: number): void {
     db.prepare('DELETE FROM rss_feeds WHERE id = ?').run(id);
   });
   del();
+}
+
+/** 修改订阅分类（源与条目均不变） */
+export function setFeedCategory(id: number, category: string): boolean {
+  if (!isValidCategory(category)) return false;
+  const db = initDb();
+  const info = db.prepare(`UPDATE rss_feeds SET category = ? WHERE id = ?`).run(category, id);
+  return info.changes > 0;
 }
 
 /** 逐个刷新给定源（串行，避免并发抓取打满带宽） */

@@ -111,6 +111,12 @@ export function initDb() {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_feed_published ON rss_entries(feed_id, published_at DESC)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_read ON rss_entries(feed_id, read)`);
 
+  // 增量迁移：rss_feeds 分类列（ai/quant/invest，空串=未分类）
+  const rssFeedCols = db.prepare(`PRAGMA table_info(rss_feeds)`).all() as { name: string }[];
+  if (rssFeedCols.length > 0 && !rssFeedCols.some((c) => c.name === 'category')) {
+    db.exec(`ALTER TABLE rss_feeds ADD COLUMN category TEXT DEFAULT ''`);
+  }
+
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_status ON entities(status)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_updated_at ON entities(updated_at)`);

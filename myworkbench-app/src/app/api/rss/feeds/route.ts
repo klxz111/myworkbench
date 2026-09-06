@@ -20,10 +20,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const url = typeof body.url === 'string' ? body.url : '';
+    const category = typeof body.category === 'string' ? body.category : '';
     if (!url) {
       return NextResponse.json({ error: '缺少 url' }, { status: 400 });
     }
-    const result = await addFeed(url);
+    const result = await addFeed(url, category);
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
