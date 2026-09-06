@@ -105,11 +105,14 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
   ],
   experiment: [
     { key: 'hypothesis', label: '假设', type: 'textarea' },
+    { key: 'config', label: '配置摘要', type: 'textarea', hint: '模型 / 数据 / 关键超参，一行一项' },
+    { key: 'metrics', label: '指标结果', type: 'textarea', hint: '一行一项，如 accuracy: 0.82' },
     { key: 'setup', label: '设置', type: 'textarea' },
     { key: 'result', label: '结果', type: 'textarea' },
     { key: 'failure_mode', label: '失败模式', type: 'textarea' },
     { key: 'interpretation', label: '解读', type: 'textarea' },
     { key: 'follow_up', label: '后续跟进', type: 'textarea' },
+    { key: 'artifacts', label: '产物链接', type: 'textarea', hint: 'wandb / 日志 / 代码，一行一个' },
   ],
   radar: [
     { key: 'category', label: '类别', type: 'select', options: ['ai_research', 'frontier_lab', 'company', 'university', 'hardware', 'ml_systems', 'robotics', 'funding', 'policy', 'immigration', 'ecosystem'] },
