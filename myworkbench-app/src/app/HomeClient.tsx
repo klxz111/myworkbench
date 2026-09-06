@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DataManagement } from '@/components/DataManagement';
 import { InsightsContent } from '@/components/InsightsCard';
+import { LauncherWidget } from '@/components/LauncherWidget';
 import { PinnedContent } from '@/components/PinnedCard';
 import { SectionCard, DatedItemList, completeDatedTask, DatedEntry, StatusBadge } from '@/components/ui';
 import { entityHref } from '@/lib/entity-paths';
@@ -81,6 +82,7 @@ type WidgetKey =
   | 'gates'
   | 'quickCapture'
   | 'pinned'
+  | 'launcher'
   | 'recent'
   | 'strategies'
   | 'dataMgmt'
@@ -92,6 +94,7 @@ const WIDGET_META: Record<WidgetKey, { title: string; column: 'left' | 'right' |
   gates: { title: '待审核门控', column: 'left' },
   quickCapture: { title: '快速捕获', column: 'right' },
   pinned: { title: '置顶', column: 'right' },
+  launcher: { title: '快速启动', column: 'right' },
   recent: { title: '最近变更', column: 'right' },
   strategies: { title: '策略', column: 'right' },
   dataMgmt: { title: '数据管理', column: 'right' },
@@ -105,6 +108,7 @@ const DEFAULT_ORDER: WidgetKey[] = [
   'gates',
   'quickCapture',
   'pinned',
+  'launcher',
   'recent',
   'strategies',
   'dataMgmt',
@@ -337,6 +341,8 @@ export function HomeClient() {
         );
       case 'pinned':
         return <PinnedContent />;
+      case 'launcher':
+        return <LauncherWidget />;
       case 'recent':
         return recentChanges.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500 py-1">暂无最近活动。</p>
