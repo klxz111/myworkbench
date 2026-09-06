@@ -12,6 +12,7 @@ import { bracketMatching } from '@codemirror/language';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
 import { MarkdownToolbar } from './MarkdownToolbar';
 import { useIsDarkTheme } from '@/lib/theme';
+import { countWords } from '@/lib/wordcount';
 
 interface MarkdownEditorProps {
   filePath: string;
@@ -28,11 +29,24 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
   const [frontmatterOpen, setFrontmatterOpen] = useState(true);
+  const [outlineOpen, setOutlineOpen] = useState(true);
+  const previewRef = useRef<HTMLDivElement>(null);
   const isDark = useIsDarkTheme();
 
   const title = (frontmatter.title as string) || filePath.replace(/\.md$/, '');
   const tagsInput = Array.isArray(frontmatter.tags) ? (frontmatter.tags as unknown as string[]).join(', ') : (frontmatter.tags as string) || '';
   const status = (frontmatter.status as string) || 'active';
+  const { words, chars } = countWords(body);
+  const headings = body
+    .split('\n')
+    .map((line, i) => ({ line: line.trim(), i }))
+    .filter(({ line }) => /^#{1,4}\s+\S/.test(line))
+    .map(({ line }) => ({ level: (line.match(/^#+/) || ['#'])[0].length, text: line.replace(/^#+\s+/, '') }));
+
+  const scrollToHeading = (index: number) => {
+    const nodes = previewRef.current?.querySelectorAll('h1, h2, h3, h4');
+    nodes?.[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     async function fetchFile() {
@@ -269,13 +283,48 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
         )}
 
         <MarkdownToolbar view={editorView} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-350px)] md:h-[calc(100vh-280px)]">
-          <div className="overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:h-[calc(100vh-280px)]">
+          <div className="overflow-hidden lg:h-full">
             <div ref={editorRef} className="h-full" />
           </div>
-          <div className="p-6 overflow-auto border-l border-gray-200 dark:border-gray-700">
-            <MarkdownPreview content={body} />
+          <div ref={previewRef} className="overflow-auto border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 lg:h-full">
+            {headings.length > 0 && (
+              <div className="sticky top-0 z-10 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-2">
+                <button
+                  onClick={() => setOutlineOpen(!outlineOpen)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                >
+                  <span>{outlineOpen ? '▼' : '▶'}</span>
+                  文档大纲（{headings.length}）
+                </button>
+                {outlineOpen && (
+                  <ul className="mt-1.5 space-y-0.5 max-h-32 overflow-y-auto scroll-thin">
+                    {headings.map((h, i) => (
+                      <li key={i}>
+                        <button
+                          onClick={() => scrollToHeading(i)}
+                          className={`block w-full text-left text-xs text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 truncate rounded px-1 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-700/60`}
+                          style={{ paddingLeft: `${(h.level - 1) * 12 + 4}px` }}
+                          title={h.text}
+                        >
+                          {h.text}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            <div className="p-6">
+              <MarkdownPreview content={body} />
+            </div>
           </div>
+        </div>
+        <div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-200 dark:border-gray-700 text-[11px] text-gray-400 dark:text-gray-500">
+          <span>
+            约 {words.toLocaleString()} 字 · {chars.toLocaleString()} 字符
+          </span>
+          <span>{hasChanges ? '● 未保存（3 秒后自动保存）' : lastSaved ? `已保存 ${lastSaved}` : '无改动'}</span>
         </div>
       </div>
     </div>
