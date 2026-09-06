@@ -54,9 +54,19 @@ export function initDb() {
       file_path TEXT NOT NULL UNIQUE,
       content_hash TEXT,
       content TEXT,
+      extra TEXT,
+      file_stat TEXT,
       UNIQUE(type, slug)
     )
   `);
+
+  // 增量迁移：extra/file_stat 列加入前建的老库补列（旧 UNIQUE schema 的整表重建走上面的 drop 分支）
+  const existingCols = db.prepare(`PRAGMA table_info(entities)`).all() as { name: string }[];
+  for (const col of ['extra', 'file_stat']) {
+    if (existingCols.length > 0 && !existingCols.some((c) => c.name === col)) {
+      db.exec(`ALTER TABLE entities ADD COLUMN ${col} TEXT`);
+    }
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS relations (
@@ -73,6 +83,8 @@ export function initDb() {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_status ON entities(status)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_updated_at ON entities(updated_at)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type_status ON entities(type, status)`);
+  // 分页查询 WHERE type=? ORDER BY updated_at DESC 的复合索引
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type_updated ON entities(type, updated_at DESC)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_from_id ON relations(from_id)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_to_id ON relations(to_id)`);
 

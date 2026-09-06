@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,26 +13,18 @@ interface Entity {
 }
 
 export function ProjectsClient() {
-  const [projects, setProjects] = useState<Entity[]>([]);
+  const {
+    items: projects, total, facets, loading: loadingProjects, loadingMore, hasMore, loadMore, reset,
+  } = useEntityListPage<Entity>('project');
   const [experiments, setExperiments] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [projectsRes, experimentsRes] = await Promise.all([
-          fetch('/api/entities/project').then((r) => r.json()),
-          fetch('/api/entities/experiment').then((r) => r.json()),
-        ]);
-        setProjects(Array.isArray(projectsRes) ? projectsRes : []);
-        setExperiments(Array.isArray(experimentsRes) ? experimentsRes : []);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    fetch('/api/entities/experiment')
+      .then((r) => r.json())
+      .then((d) => setExperiments(Array.isArray(d) ? d : []))
+      .catch((error) => console.error('Error fetching experiments:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (type: string, id: string) => {
@@ -41,7 +33,7 @@ export function ProjectsClient() {
       const res = await fetch(`/api/entities/${type}/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
       if (type === 'project') {
-        setProjects(projects.filter((p) => p.id !== id));
+        await reset();
       } else {
         setExperiments(experiments.filter((e) => e.id !== id));
       }
@@ -51,10 +43,10 @@ export function ProjectsClient() {
     }
   };
 
-  const controlsP = useListControls(projects);
+  const controlsP = useListControls(projects, facets);
   const controlsE = useListControls(experiments);
 
-  if (loading) {
+  if (loading || loadingProjects) {
     return <div className="text-gray-500">加载项目中...</div>;
   }
 
@@ -66,11 +58,11 @@ export function ProjectsClient() {
             项目
           </h2>
         </div>
-        {projects.length > 0 && (
+        {total > 0 && (
           <ListToolbar {...controlsP.toolbar} placeholder="搜索项目标题 / 标签..." />
         )}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          {projects.length === 0 ? (
+          {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无项目。
             </div>
@@ -79,6 +71,7 @@ export function ProjectsClient() {
               没有匹配当前筛选条件的项目。
             </div>
           ) : (
+            <>
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {controlsP.items.map((project) => (
                 <li key={project.id}>
@@ -120,6 +113,14 @@ export function ProjectsClient() {
                 </li>
               ))}
             </ul>
+            <LoadMoreRow
+              hasMore={hasMore}
+              loading={loadingMore}
+              loadedCount={controlsP.items.length}
+              total={total}
+              onLoadMore={loadMore}
+            />
+            </>
           )}
         </div>
       </section>

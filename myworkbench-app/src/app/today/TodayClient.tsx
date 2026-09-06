@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { parseDateOnly } from '@/lib/date-utils';
+import { completeTaskPayload } from '@/lib/recurring';
 
 interface DatedItem {
   id: string;
@@ -15,6 +16,9 @@ interface DatedItem {
   href: string;
   task_status?: string;
   notes?: string;
+  recurrence?: string;
+  recurrence_until?: string;
+  occurrence?: string;
 }
 
 interface TodayData {
@@ -53,7 +57,7 @@ function ItemRow({
 }: {
   item: DatedItem;
   showDue?: boolean;
-  onComplete?: (id: string) => void;
+  onComplete?: (item: DatedItem) => void;
 }) {
   return (
     <li className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded">
@@ -72,8 +76,8 @@ function ItemRow({
       </Link>
       {item.kind === 'task' && onComplete && (
         <button
-          onClick={() => onComplete(item.id)}
-          title="标记为完成"
+          onClick={() => onComplete(item)}
+          title={item.recurrence ? '完成并推进到下一周期' : '标记为完成'}
           className="shrink-0 px-2 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700"
         >
           ✓
@@ -146,13 +150,14 @@ export function TodayClient() {
     load();
   }, [load]);
 
-  /** 就地完成任务（复用任务实体的 status 字段） */
-  const completeTask = async (id: string) => {
+  /** 就地完成任务：循环任务推进到下一周期，普通任务置 done */
+  const completeTask = async (item: DatedItem) => {
     try {
-      const res = await fetch(`/api/entities/task/${id}`, {
+      const payload = completeTaskPayload(item, item.occurrence || item.date);
+      const res = await fetch(`/api/entities/task/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { status: 'done' } }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('更新失败');
       load();

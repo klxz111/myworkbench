@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,26 +13,18 @@ interface Entity {
 }
 
 export function ResearchClient() {
-  const [research, setResearch] = useState<Entity[]>([]);
+  const {
+    items: research, total, facets, loading: loadingResearch, loadingMore, hasMore, loadMore, reset,
+  } = useEntityListPage<Entity>('research');
   const [evidence, setEvidence] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [researchRes, evidenceRes] = await Promise.all([
-          fetch('/api/entities/research').then((r) => r.json()),
-          fetch('/api/entities/evidence').then((r) => r.json()),
-        ]);
-        setResearch(Array.isArray(researchRes) ? researchRes : []);
-        setEvidence(Array.isArray(evidenceRes) ? evidenceRes : []);
-      } catch (error) {
-        console.error('Error fetching research data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    fetch('/api/entities/evidence')
+      .then((r) => r.json())
+      .then((d) => setEvidence(Array.isArray(d) ? d : []))
+      .catch((error) => console.error('Error fetching evidence:', error))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async (type: string, id: string) => {
@@ -41,7 +33,7 @@ export function ResearchClient() {
       const res = await fetch(`/api/entities/${type}/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
       if (type === 'research') {
-        setResearch(research.filter((r) => r.id !== id));
+        await reset();
       } else {
         setEvidence(evidence.filter((e) => e.id !== id));
       }
@@ -51,10 +43,10 @@ export function ResearchClient() {
     }
   };
 
-  const controlsR = useListControls(research);
+  const controlsR = useListControls(research, facets);
   const controlsE = useListControls(evidence);
 
-  if (loading) {
+  if (loading || loadingResearch) {
     return <div className="text-gray-500">加载研究中...</div>;
   }
 
@@ -66,11 +58,11 @@ export function ResearchClient() {
             研究主题
           </h2>
         </div>
-        {research.length > 0 && (
+        {total > 0 && (
           <ListToolbar {...controlsR.toolbar} placeholder="搜索研究主题 / 标签..." />
         )}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          {research.length === 0 ? (
+          {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无研究主题。
             </div>
@@ -79,6 +71,7 @@ export function ResearchClient() {
               没有匹配当前筛选条件的研究主题。
             </div>
           ) : (
+            <>
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {controlsR.items.map((item) => (
                 <li key={item.id}>
@@ -121,6 +114,14 @@ export function ResearchClient() {
                 </li>
               ))}
             </ul>
+            <LoadMoreRow
+              hasMore={hasMore}
+              loading={loadingMore}
+              loadedCount={controlsR.items.length}
+              total={total}
+              onLoadMore={loadMore}
+            />
+            </>
           )}
         </div>
       </section>

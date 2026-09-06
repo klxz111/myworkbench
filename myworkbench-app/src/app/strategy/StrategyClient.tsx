@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Strategy {
   id: string;
@@ -13,37 +12,21 @@ interface Strategy {
 }
 
 export function StrategyClient() {
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchStrategies() {
-      try {
-        const res = await fetch('/api/entities/strategy');
-        const data = await res.json();
-        setStrategies(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Error fetching strategies:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchStrategies();
-  }, []);
+  const { items: strategies, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Strategy>('strategy');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此策略吗？')) return;
     try {
       const res = await fetch(`/api/entities/strategy/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setStrategies(strategies.filter((s) => s.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting strategy:', error);
       alert('删除策略失败');
     }
   };
 
-  const controls = useListControls(strategies);
+  const controls = useListControls(strategies, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载策略中...</div>;
@@ -51,11 +34,11 @@ export function StrategyClient() {
 
   return (
     <div className="space-y-6">
-      {strategies.length > 0 && (
+      {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索策略标题 / 标签..." />
       )}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-        {strategies.length === 0 ? (
+        {total === 0 ? (
           <div className="p-6 text-center text-gray-500">
             暂无策略。请定义您的长期方向。
           </div>
@@ -64,6 +47,7 @@ export function StrategyClient() {
             没有匹配当前筛选条件的策略。
           </div>
         ) : (
+          <>
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {controls.items.map((strategy) => (
               <li key={strategy.id}>
@@ -122,6 +106,14 @@ export function StrategyClient() {
               </li>
             ))}
           </ul>
+          <LoadMoreRow
+            hasMore={hasMore}
+            loading={loadingMore}
+            loadedCount={controls.items.length}
+            total={total}
+            onLoadMore={loadMore}
+          />
+          </>
         )}
       </div>
     </div>

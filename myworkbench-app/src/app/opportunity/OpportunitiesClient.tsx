@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,39 +12,21 @@ interface Entity {
 }
 
 export function OpportunitiesClient() {
-  const [opportunities, setOpportunities] = useState<Entity[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/entities/opportunity');
-        if (res.ok) {
-          const data = await res.json();
-          setOpportunities(data);
-        }
-      } catch (error) {
-        console.error('Error fetching opportunities:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  const { items: opportunities, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Entity>('opportunity');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此机会吗？')) return;
     try {
       const res = await fetch(`/api/entities/opportunity/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setOpportunities(opportunities.filter((o) => o.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting opportunity:', error);
       alert('删除机会失败');
     }
   };
 
-  const controls = useListControls(opportunities);
+  const controls = useListControls(opportunities, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载机会中...</div>;
@@ -53,11 +34,11 @@ export function OpportunitiesClient() {
 
   return (
     <div>
-      {opportunities.length > 0 && (
+      {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索机会标题 / 标签..." />
       )}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      {opportunities.length === 0 ? (
+      {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无机会。
             </div>
@@ -66,6 +47,7 @@ export function OpportunitiesClient() {
           没有匹配当前筛选条件的机会。
         </div>
       ) : (
+        <>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {controls.items.map((opp) => (
             <li key={opp.id}>
@@ -124,6 +106,14 @@ export function OpportunitiesClient() {
             </li>
           ))}
         </ul>
+        <LoadMoreRow
+                    hasMore={hasMore}
+                    loading={loadingMore}
+                    loadedCount={controls.items.length}
+                    total={total}
+                    onLoadMore={loadMore}
+                  />
+                  </>
       )}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useListControls, ListToolbar } from '@/components/ListControls';
 import { parseDateOnly } from '@/lib/date-utils';
+import { completeTaskPayload } from '@/lib/recurring';
 
 interface Task {
   id: string;
@@ -12,6 +13,8 @@ interface Task {
   tags: string[];
   updated_at: string;
   due_date?: string;
+  recurrence?: string;
+  recurrence_until?: string;
   priority?: string;
   notes?: string;
 }
@@ -63,25 +66,37 @@ export function TasksClient() {
   const controls = useListControls(tasks);
 
   const setStatus = async (task: Task, status: string) => {
+    await applyUpdate(task, { status });
+  };
+
+  /** PUT 部分字段并乐观更新本地状态（status 与 due_date 二选一或同传） */
+  const applyUpdate = async (task: Task, data: { status?: string; due_date?: string }) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, ...data, updated_at: new Date().toISOString() } : t))
+    );
     try {
       const res = await fetch(`/api/entities/task/${task.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { status } }),
+        body: JSON.stringify({ data }),
       });
       if (!res.ok) throw new Error('更新失败');
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, status, updated_at: new Date().toISOString() } : t))
-      );
     } catch (error) {
       console.error('Error updating task status:', error);
+      // 回滚乐观更新
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
       alert('更新任务状态失败');
     }
   };
 
+  /** 勾选切换：循环任务完成 = due_date 推进到下一周期（仍待办）；普通任务 = done/todo 切换 */
   const cycle = (task: Task) => {
-    const next = task.status === 'done' ? 'todo' : 'done';
-    setStatus(task, next);
+    if (task.status === 'done') {
+      setStatus(task, 'todo');
+      return;
+    }
+    const { data } = completeTaskPayload(task);
+    applyUpdate(task, data);
   };
 
   if (loading) {
@@ -144,6 +159,11 @@ export function TasksClient() {
                               {task.priority && task.priority !== 'low' && (
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${PRIORITY_BADGE[task.priority] || ''}`}>
                                   {task.priority === 'high' ? '高优先' : '中优先'}
+                                </span>
+                              )}
+                              {task.recurrence && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                                  循环
                                 </span>
                               )}
                               {due && (

@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,39 +12,21 @@ interface Entity {
 }
 
 export function ExperimentsClient() {
-  const [experiments, setExperiments] = useState<Entity[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/entities/experiment');
-        if (res.ok) {
-          const data = await res.json();
-          setExperiments(data);
-        }
-      } catch (error) {
-        console.error('Error fetching experiments:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  const { items: experiments, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Entity>('experiment');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此实验吗？')) return;
     try {
       const res = await fetch(`/api/entities/experiment/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setExperiments(experiments.filter((e) => e.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting experiment:', error);
       alert('删除实验失败');
     }
   };
 
-  const controls = useListControls(experiments);
+  const controls = useListControls(experiments, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载实验中...</div>;
@@ -53,11 +34,11 @@ export function ExperimentsClient() {
 
   return (
     <div>
-      {experiments.length > 0 && (
+      {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索实验标题 / 标签..." />
       )}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      {experiments.length === 0 ? (
+      {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无实验。
             </div>
@@ -66,6 +47,7 @@ export function ExperimentsClient() {
           没有匹配当前筛选条件的实验。
         </div>
       ) : (
+        <>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {controls.items.map((exp) => (
             <li key={exp.id}>
@@ -124,6 +106,14 @@ export function ExperimentsClient() {
             </li>
           ))}
         </ul>
+        <LoadMoreRow
+                    hasMore={hasMore}
+                    loading={loadingMore}
+                    loadedCount={controls.items.length}
+                    total={total}
+                    onLoadMore={loadMore}
+                  />
+                  </>
       )}
       </div>
     </div>

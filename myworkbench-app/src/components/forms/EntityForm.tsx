@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { COMMON_FIELDS, TYPE_SPECIFIC_FIELDS } from '@/lib/fields';
+import { ContentEditor } from '@/components/forms/ContentEditor';
 
 export interface EntityFormData {
   id?: string;
@@ -148,6 +149,14 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
             />
           )}
 
+          {field.type === 'markdown' && (
+            <ContentEditor
+              value={(formData[field.key] as string) || ''}
+              onChange={(v) => setFormData({ ...formData, [field.key]: v })}
+              placeholder="支持 Markdown：# 标题、**粗体**、- 列表、![图片]..."
+            />
+          )}
+
           {field.type === 'textarea' && (
             <textarea
               rows={4}
@@ -187,7 +196,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
             >
                <option value="">请选择...</option>
               {field.options.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt} value={opt}>{field.option_labels?.[opt] || opt}</option>
               ))}
             </select>
           )}

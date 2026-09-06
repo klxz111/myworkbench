@@ -3,8 +3,23 @@ import fs from 'fs';
 import path from 'path';
 import { getEntityRoot, ENTITY_DIRS } from '@/lib/markdown';
 import { initDb } from '@/lib/db';
+import { getWorkspaceRoot } from '@/lib/workspace-path';
+import type JSZip from 'jszip';
 
 export const runtime = 'nodejs';
+
+/** 递归把目录内容写入 zip 子目录（附件等二进制资产随备份走） */
+function addDirToZip(zipDir: JSZip, absDir: string): void {
+  for (const entry of fs.readdirSync(/* turbopackIgnore: true */ absDir, { withFileTypes: true })) {
+    const abs = path.join(absDir, entry.name);
+    if (entry.isDirectory()) {
+      const sub = zipDir.folder(entry.name);
+      if (sub) addDirToZip(sub, abs);
+    } else if (entry.isFile()) {
+      zipDir.file(entry.name, fs.readFileSync(abs));
+    }
+  }
+}
 
 function timestamp(): string {
   const d = new Date();
@@ -73,6 +88,11 @@ export async function GET(request: NextRequest) {
     for (const f of files) {
       const raw = fs.readFileSync(/* turbopackIgnore: true */ f.fullPath);
       entityRoot?.folder(f.dir)?.file(f.file, raw);
+    }
+    const attachmentsDir = path.join(getWorkspaceRoot(), 'attachments');
+    if (fs.existsSync(/* turbopackIgnore: true */ attachmentsDir)) {
+      const attachmentRoot = zip.folder('attachments');
+      if (attachmentRoot) addDirToZip(attachmentRoot, attachmentsDir);
     }
     zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 

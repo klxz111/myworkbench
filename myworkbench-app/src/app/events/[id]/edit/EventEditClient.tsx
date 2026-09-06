@@ -13,6 +13,8 @@ interface Event {
   updated_at: string;
   content: string;
   event_date?: string;
+  recurrence?: string;
+  recurrence_until?: string;
   location?: string;
   event_type?: string;
   linked_strategies?: string[];
@@ -34,6 +36,8 @@ export function EventEditClient({ id }: EventEditProps) {
     tags: '',
     content: '',
     event_date: '',
+    recurrence: '',
+    recurrence_until: '',
     location: '',
     event_type: '',
     linked_strategies: '',
@@ -52,6 +56,8 @@ export function EventEditClient({ id }: EventEditProps) {
           tags: (data.tags || []).join(', '),
           content: data.content || '',
           event_date: data.event_date || '',
+          recurrence: data.recurrence || '',
+          recurrence_until: data.recurrence_until || '',
           location: data.location || '',
           event_type: data.event_type || '',
           linked_strategies: (data.linked_strategies || []).join(', '),
@@ -76,6 +82,8 @@ export function EventEditClient({ id }: EventEditProps) {
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
         content: form.content,
         event_date: form.event_date || undefined,
+        recurrence: form.recurrence || undefined,
+        recurrence_until: form.recurrence_until || undefined,
         location: form.location || undefined,
         event_type: form.event_type || undefined,
         linked_strategies: form.linked_strategies.split(',').map((t) => t.trim()).filter(Boolean),
@@ -163,6 +171,35 @@ export function EventEditClient({ id }: EventEditProps) {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">重复</label>
+          <select
+            value={form.recurrence}
+            onChange={(e) => setForm({ ...form, recurrence: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">不重复</option>
+            <option value="daily">每天</option>
+            <option value="weekly">每周</option>
+            <option value="biweekly">每两周</option>
+            <option value="monthly">每月</option>
+            <option value="yearly">每年</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">设置后日历会展开显示未来的发生日</p>
+        </div>
+
+        {form.recurrence && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">重复截止（可选）</label>
+            <input
+              type="date"
+              value={form.recurrence_until}
+              onChange={(e) => setForm({ ...form, recurrence_until: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">地点</label>

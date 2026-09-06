@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { completeTaskPayload } from '@/lib/recurring';
 
 interface BoardItem {
   id: string;
@@ -9,6 +10,9 @@ interface BoardItem {
   status: string;
   tags: string[];
   updated_at: string;
+  due_date?: string;
+  recurrence?: string;
+  recurrence_until?: string;
 }
 
 interface BoardType {
@@ -106,15 +110,20 @@ export function BoardClient() {
 
   const setStatus = async (item: BoardItem, status: string) => {
     if (item.status === status) return;
+    // 循环任务拖到"已完成" = 推进到下一周期（与日历/今日/任务页的完成语义一致），而非置 done
+    const data =
+      board.type === 'task' && status === 'done'
+        ? completeTaskPayload(item).data
+        : { status };
     try {
       const res = await fetch(`/api/entities/${board.type}/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { status } }),
+        body: JSON.stringify({ data }),
       });
       if (!res.ok) throw new Error('更新失败');
       setItems((prev) =>
-        prev.map((it) => (it.id === item.id ? { ...it, status, updated_at: new Date().toISOString() } : it))
+        prev.map((it) => (it.id === item.id ? { ...it, ...data, updated_at: new Date().toISOString() } : it))
       );
     } catch (error) {
       console.error('Error updating status:', error);

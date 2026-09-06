@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Evidence {
   id: string;
@@ -24,37 +23,21 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 export function EvidenceClient() {
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchEvidence() {
-      try {
-        const res = await fetch('/api/entities/evidence');
-        const data = await res.json();
-        setEvidence(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Error fetching evidence:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvidence();
-  }, []);
+  const { items: evidence, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Evidence>('evidence');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此证据吗？')) return;
     try {
       const res = await fetch(`/api/entities/evidence/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setEvidence(evidence.filter((e) => e.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting evidence:', error);
       alert('删除证据失败');
     }
   };
 
-  const controls = useListControls(evidence);
+  const controls = useListControls(evidence, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载证据中...</div>;
@@ -62,11 +45,11 @@ export function EvidenceClient() {
 
   return (
     <div>
-      {evidence.length > 0 && (
+      {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索证据标题 / 标签..." />
       )}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      {evidence.length === 0 ? (
+      {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无证据。添加观察、文献或实验。
             </div>
@@ -75,6 +58,7 @@ export function EvidenceClient() {
           没有匹配当前筛选条件的证据。
         </div>
       ) : (
+        <>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {controls.items.map((item) => (
             <li key={item.id}>
@@ -133,6 +117,14 @@ export function EvidenceClient() {
             </li>
           ))}
         </ul>
+        <LoadMoreRow
+                    hasMore={hasMore}
+                    loading={loadingMore}
+                    loadedCount={controls.items.length}
+                    total={total}
+                    onLoadMore={loadMore}
+                  />
+                  </>
       )}
       </div>
     </div>

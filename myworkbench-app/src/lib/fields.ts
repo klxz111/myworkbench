@@ -1,16 +1,28 @@
 export interface FieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'tags' | 'date' | 'number' | 'list';
+  type: 'text' | 'textarea' | 'markdown' | 'select' | 'tags' | 'date' | 'number' | 'list';
   options?: string[];
+  /** select 选项的中文显示名（value 仍是 options 里的原始值） */
+  option_labels?: Record<string, string>;
   hint?: string;
 }
+
+/** 循环频率选项（task/event 共用；value 与 date-utils 的 RecurrenceFreq 对应） */
+export const RECURRENCE_OPTIONS = ['daily', 'weekly', 'biweekly', 'monthly', 'yearly'];
+export const RECURRENCE_LABELS: Record<string, string> = {
+  daily: '每天',
+  weekly: '每周',
+  biweekly: '每两周',
+  monthly: '每月',
+  yearly: '每年',
+};
 
 export const COMMON_FIELDS: FieldDef[] = [
   { key: 'title', label: '标题', type: 'text' },
   { key: 'status', label: '状态', type: 'select', options: ['active', 'archived', 'draft'] },
   { key: 'tags', label: '标签', type: 'tags' },
-  { key: 'content', label: '内容', type: 'textarea' },
+  { key: 'content', label: '内容', type: 'markdown' },
 ];
 
 export const COMMON_KEYS = new Set([
@@ -121,6 +133,8 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
   ],
   event: [
     { key: 'event_date', label: '事件日期', type: 'date' },
+    { key: 'recurrence', label: '重复', type: 'select', options: RECURRENCE_OPTIONS, option_labels: RECURRENCE_LABELS, hint: '设置后日历会展开显示未来的发生日' },
+    { key: 'recurrence_until', label: '重复截止', type: 'date', hint: '可选，循环到此日期为止' },
     { key: 'location', label: '地点', type: 'text' },
     { key: 'event_type', label: '事件类型', type: 'text' },
   ],
@@ -133,6 +147,8 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
     // 覆盖 COMMON_FIELDS 的 status：任务生命周期为 todo/doing/done
     { key: 'status', label: '状态', type: 'select', options: ['todo', 'doing', 'done', 'archived'] },
     { key: 'due_date', label: '截止日期', type: 'date' },
+    { key: 'recurrence', label: '重复', type: 'select', options: RECURRENCE_OPTIONS, option_labels: RECURRENCE_LABELS, hint: '设置后完成任务会自动把截止日期推进到下一周期，日历展开显示未来发生日' },
+    { key: 'recurrence_until', label: '重复截止', type: 'date', hint: '可选，循环到此日期为止' },
     { key: 'priority', label: '优先级', type: 'select', options: ['high', 'medium', 'low'] },
     { key: 'notes', label: '备注', type: 'textarea' },
     { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '任务涉及的智源知识树节点名（逗号分隔）' },

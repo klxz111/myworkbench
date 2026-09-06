@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { EditorView } from '@codemirror/view';
 
 interface MarkdownToolbarProps {
@@ -7,6 +8,9 @@ interface MarkdownToolbarProps {
 }
 
 export function MarkdownToolbar({ view }: MarkdownToolbarProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
   const insert = (before: string, after: string = '', placeholder: string = '') => {
     if (!view) return;
     const { state } = view;
@@ -18,6 +22,26 @@ export function MarkdownToolbar({ view }: MarkdownToolbarProps) {
       selection: { anchor: from + before.length, head: from + before.length + (selected ? selected.length : placeholder.length) },
     });
     view.focus();
+  };
+
+  const uploadImage = async (file: File) => {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '上传失败');
+      }
+      const data = await res.json();
+      insert(`![${file.name.replace(/\.[^.]+$/, '')}](/api/asset?path=${encodeURIComponent(data.path)})`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '上传失败');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
   };
 
   return (
@@ -71,6 +95,24 @@ export function MarkdownToolbar({ view }: MarkdownToolbarProps) {
       >
         🔗
       </button>
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={uploading}
+        className="px-2 py-1 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-50"
+        title={uploading ? '上传中...' : '插入图片（png/jpg/gif/webp，≤10MB）'}
+      >
+        {uploading ? '⏳' : '🖼'}
+      </button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) uploadImage(f);
+        }}
+      />
     </div>
   );
 }

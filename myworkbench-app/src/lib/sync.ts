@@ -11,6 +11,7 @@ import {
   EntityFrontmatter,
   ENTITY_DIRS,
 } from './markdown';
+import { pickExtras } from './list-extras';
 
 const DIR_TO_TYPE: Record<string, EntityType> = Object.entries(
   ENTITY_DIRS
@@ -64,29 +65,55 @@ export function syncMarkdownToSqlite(): SyncResult {
 
     const entityTypeDirs = fs.readdirSync(/* turbopackIgnore: true */ root, { withFileTypes: true });
     const seenPaths = new Set<string>();
+    // mtime+size 快路径：每个请求都会触发 sync，逐文件 stat（不读不解析）后与上次签名比对，
+    // 未变化的文件直接跳过读取与解析——这是列表接口真正的 O(n) 成本所在
+    const byPathStmt = db.prepare(
+      'SELECT id, file_stat FROM entities WHERE file_path = ?'
+    );
+    const byIdStmt = db.prepare(
+      'SELECT id, content_hash, file_path, type, slug, extra FROM entities WHERE id = ?'
+    );
 
     for (const dir of entityTypeDirs) {
       if (!dir.isDirectory()) continue;
       const type = DIR_TO_TYPE[dir.name];
       if (!type) continue;
-      const entities = listEntities(type);
+      const dirPath = path.join(root, dir.name);
+      const files = fs.readdirSync(/* turbopackIgnore: true */ dirPath).filter((f) => f.endsWith('.md'));
 
-      for (const entity of entities) {
+      for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const st = fs.statSync(/* turbopackIgnore: true */ filePath);
+        const sig = `${Math.round(st.mtimeMs)}|${st.size}`;
+
+        const pathRow = byPathStmt.get(filePath) as { id: string; file_stat: string | null } | undefined;
+        if (pathRow && pathRow.file_stat === sig) {
+          seenPaths.add(filePath);
+          result.skipped++;
+          continue;
+        }
+
+        const entity = readEntity(type, file.replace(/\.md$/, ''));
+        if (!entity) continue;
         result.scanned++;
         seenPaths.add(entity.filePath);
 
         const contentHash = stableHash(entity.frontmatter, entity.content);
+        const extra = pickExtras(entity.type, entity.frontmatter);
 
-        const existing = db.prepare(
-          'SELECT id, content_hash, file_path, type, slug FROM entities WHERE id = ?'
-        ).get(entity.id) as
-          | { id: string; content_hash: string; file_path: string; type: string; slug: string }
+        // 同一文件路径下 frontmatter 的 id 被改过时，旧行会占据 file_path 的 UNIQUE 位，先驱逐
+        if (pathRow && pathRow.id !== entity.id) {
+          db.prepare('DELETE FROM entities WHERE id = ?').run(pathRow.id);
+        }
+
+        const existing = byIdStmt.get(entity.id) as
+          | { id: string; content_hash: string; file_path: string; type: string; slug: string; extra: string | null }
           | undefined;
 
         if (!existing) {
           db.prepare(
-            `INSERT INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            `INSERT INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content, extra, file_stat)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           ).run(
             entity.id,
             entity.type,
@@ -96,19 +123,23 @@ export function syncMarkdownToSqlite(): SyncResult {
             JSON.stringify(entity.frontmatter.tags || []),
             entity.filePath,
             contentHash,
-            entity.content
+            entity.content,
+            extra,
+            sig
           );
           result.created++;
         } else if (
           existing.content_hash !== contentHash ||
           existing.file_path !== entity.filePath ||
           existing.type !== entity.type ||
-          existing.slug !== entity.slug
+          existing.slug !== entity.slug ||
+          // extra 不参与内容指纹；列新增/取值口径变化时靠它自愈回填
+          (existing.extra ?? null) !== (extra ?? null)
         ) {
           // 文件路径/类型/slug 变化（重命名、移动目录）也必须写回，
           // 否则下方按 file_path 的删除清判会把实体从索引里误删
           db.prepare(
-            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, file_path = ?, type = ?, slug = ?, updated_at = datetime('now')
+            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, extra = ?, file_stat = ?, file_path = ?, type = ?, slug = ?, updated_at = datetime('now')
              WHERE id = ?`
           ).run(
             entity.frontmatter.title,
@@ -116,6 +147,8 @@ export function syncMarkdownToSqlite(): SyncResult {
             JSON.stringify(entity.frontmatter.tags || []),
             contentHash,
             entity.content,
+            extra,
+            sig,
             entity.filePath,
             entity.type,
             entity.slug,
@@ -123,6 +156,8 @@ export function syncMarkdownToSqlite(): SyncResult {
           );
           result.updated++;
         } else {
+          // 内容没变但 mtime 动了（如被外部工具触碰）：只回填签名，避免每次请求都重新解析
+          db.prepare('UPDATE entities SET file_stat = ? WHERE id = ?').run(sig, entity.id);
           result.skipped++;
         }
       }
@@ -165,10 +200,11 @@ export function createEntity(
 
   // 与 syncMarkdownToSqlite 完全相同的公式：frontmatter 不含 content 键
   const contentHash = stableHash(entity.frontmatter, normalized.content);
+  const extra = pickExtras(entity.type, entity.frontmatter);
 
   db.prepare(
-    `INSERT OR IGNORE INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
+    `INSERT OR IGNORE INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content, extra, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`
   ).run(
     entity.id,
     entity.type,
@@ -178,13 +214,14 @@ export function createEntity(
     JSON.stringify(normalized.tags || []),
     entity.filePath,
     contentHash,
-    normalized.content
+    normalized.content,
+    extra
   );
 
   const exists = db.prepare('SELECT id FROM entities WHERE id = ?').get(entity.id);
   if (exists) {
     db.prepare(
-      `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, updated_at = datetime('now')
+      `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, extra = ?, updated_at = datetime('now')
        WHERE id = ?`
     ).run(
       normalized.title,
@@ -192,6 +229,7 @@ export function createEntity(
       JSON.stringify(normalized.tags || []),
       contentHash,
       normalized.content,
+      extra,
       entity.id
     );
   }

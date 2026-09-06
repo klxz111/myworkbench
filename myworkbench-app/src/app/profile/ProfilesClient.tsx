@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,39 +12,21 @@ interface Entity {
 }
 
 export function ProfilesClient() {
-  const [profiles, setProfiles] = useState<Entity[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/entities/profile');
-        if (res.ok) {
-          const data = await res.json();
-          setProfiles(data);
-        }
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  const { items: profiles, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Entity>('profile');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此个人档案吗？')) return;
     try {
       const res = await fetch(`/api/entities/profile/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setProfiles(profiles.filter((p) => p.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting profile:', error);
       alert('删除个人档案失败');
     }
   };
 
-  const controls = useListControls(profiles);
+  const controls = useListControls(profiles, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载档案中...</div>;
@@ -53,11 +34,11 @@ export function ProfilesClient() {
 
   return (
     <div>
-      {profiles.length > 0 && (
+      {total > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索档案标题 / 标签..." />
       )}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-      {profiles.length === 0 ? (
+      {total === 0 ? (
               <div className="p-6 text-center text-gray-500">
               暂无档案。
             </div>
@@ -66,6 +47,7 @@ export function ProfilesClient() {
           没有匹配当前筛选条件的档案。
         </div>
       ) : (
+        <>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {controls.items.map((profile) => (
             <li key={profile.id}>
@@ -124,6 +106,14 @@ export function ProfilesClient() {
             </li>
           ))}
         </ul>
+        <LoadMoreRow
+                    hasMore={hasMore}
+                    loading={loadingMore}
+                    loadedCount={controls.items.length}
+                    total={total}
+                    onLoadMore={loadMore}
+                  />
+                  </>
       )}
       </div>
     </div>

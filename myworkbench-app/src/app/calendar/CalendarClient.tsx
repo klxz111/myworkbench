@@ -1,7 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { completeTaskPayload } from '@/lib/recurring';
+import { RECURRENCE_LABELS } from '@/lib/fields';
 
 interface CalendarItem {
   id: string;
@@ -14,6 +16,9 @@ interface CalendarItem {
   href: string;
   task_status?: string;
   notes?: string;
+  recurrence?: string;
+  recurrence_until?: string;
+  occurrence?: string;
 }
 
 /** kind → 编辑路由前缀（与详情路由不同：person/opportunity/task 的编辑都在 /entities 下） */
@@ -23,6 +28,17 @@ const KIND_EDIT_PREFIX: Record<string, string> = {
   followup: '/entities/person',
   deadline: '/entities/opportunity',
   event: '/events',
+};
+
+/**
+ * kind → 可拖拽改期的 (API 类型, 日期字段)。gate 是嵌套对象（gate.review_date），
+ * 整对象 PUT 有覆盖风险，不提供拖拽，保留编辑直达。
+ */
+const KIND_DATE_FIELD: Record<string, { apiType: string; field: string }> = {
+  task: { apiType: 'task', field: 'due_date' },
+  event: { apiType: 'event', field: 'event_date' },
+  followup: { apiType: 'person', field: 'next_action_date' },
+  deadline: { apiType: 'opportunity', field: 'deadline' },
 };
 
 function editHrefFor(item: CalendarItem): string {
@@ -73,6 +89,10 @@ export function CalendarClient() {
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
+  const [dragItem, setDragItem] = useState<CalendarItem | null>(null);
+  // drop 处理器用 ref 读取拖拽项：setState 异步提交，dragstart 后紧接的 drop 读 state 会拿到旧值
+  const dragItemRef = useRef<CalendarItem | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null);
 
   const load = useCallback(async (y: number, m: number) => {
     setItems(null);
@@ -117,14 +137,15 @@ export function CalendarClient() {
 
   const selectedItems = selectedDay ? itemsByDay.get(selectedDay) || [] : [];
 
-  /** 就地完成任务（复用任务实体的 status 字段） */
-  const completeTask = async (id: string) => {
-    setCompleting(id);
+  /** 就地完成任务：循环任务推进到下一周期，普通任务置 done */
+  const completeTask = async (item: CalendarItem) => {
+    setCompleting(item.id);
     try {
-      const res = await fetch(`/api/entities/task/${id}`, {
+      const payload = completeTaskPayload(item, item.occurrence || item.date);
+      const res = await fetch(`/api/entities/task/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: { status: 'done' } }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('更新失败');
       await load(year, month);
@@ -132,6 +153,29 @@ export function CalendarClient() {
       console.error('Error completing task:', error);
     } finally {
       setCompleting(null);
+    }
+  };
+
+  /** 拖拽改期：把条目拖到目标日期格，PUT 对应的日期字段后刷新 */
+  const dropItemOnDay = async (day: number) => {
+    const item = dragItemRef.current;
+    dragItemRef.current = null;
+    setDragItem(null);
+    setDragOverDay(null);
+    if (!item) return;
+    const mapping = KIND_DATE_FIELD[item.kind];
+    if (!mapping) return;
+    try {
+      const targetDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const res = await fetch(`/api/entities/${mapping.apiType}/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { [mapping.field]: targetDate } }),
+      });
+      if (!res.ok) throw new Error('改期失败');
+      await load(year, month);
+    } catch (error) {
+      console.error('Error rescheduling item:', error);
     }
   };
 
@@ -216,9 +260,21 @@ export function CalendarClient() {
                   <button
                     key={ci}
                     onClick={() => setSelectedDay(day)}
+                    onDragOver={(e) => {
+                      if (!dragItem) return;
+                      e.preventDefault();
+                      setDragOverDay(day);
+                    }}
+                    onDragLeave={() => setDragOverDay((cur) => (cur === day ? null : cur))}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      dropItemOnDay(day);
+                    }}
                     className={`min-h-[64px] p-1 rounded border text-left transition-colors ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        : dragOverDay === day
+                        ? 'border-blue-500 border-dashed bg-blue-50/60 dark:bg-blue-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
                     }`}
                   >
@@ -255,20 +311,40 @@ export function CalendarClient() {
 
       {/* 选中日详情 */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 self-start">
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
           {selectedDay ? `${month} 月 ${selectedDay} 日` : '选择一个日期'}
         </h3>
+        {selectedItems.length > 0 && (
+          <p className="mb-3 text-xs text-gray-400 dark:text-gray-500">提示：条目可拖到左侧日期格改期。</p>
+        )}
         {selectedItems.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500">这一天没有安排。</p>
         ) : (
           <ul className="space-y-3">
-            {selectedItems.map((item) => (
-              <li key={`${item.kind}-${item.id}`} className="p-2 rounded border border-gray-100 dark:border-gray-700">
+            {selectedItems.map((item) => {
+              const draggable = Boolean(KIND_DATE_FIELD[item.kind]);
+              return (
+              <li
+                key={`${item.kind}-${item.id}-${item.occurrence || ''}`}
+                draggable={draggable}
+                onDragStart={() => { dragItemRef.current = item; setDragItem(item); }}
+                onDragEnd={() => { dragItemRef.current = null; setDragItem(null); setDragOverDay(null); }}
+                className={`p-2 rounded border border-gray-100 dark:border-gray-700 ${
+                  draggable ? 'cursor-grab active:cursor-grabbing' : ''
+                } ${dragItem?.kind === item.kind && dragItem?.id === item.id ? 'opacity-50' : ''}`}
+                title={draggable ? '拖到左侧日期格可改期' : undefined}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <Link href={item.href} className="flex-1 min-w-0">
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${KIND_BADGE[item.kind] || KIND_BADGE.event}`}>
                       {item.kind_label || item.kind}
                     </span>
+                    {item.recurrence && (
+                      <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                        {RECURRENCE_LABELS[item.recurrence] || item.recurrence}
+                        {item.occurrence ? ' · 循环' : ''}
+                      </span>
+                    )}
                     <p className="mt-1 text-sm text-gray-900 dark:text-gray-200">{item.title}</p>
                     {item.notes && (
                       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2" title="任务备注">
@@ -281,9 +357,9 @@ export function CalendarClient() {
                   <div className="flex shrink-0 flex-col gap-1">
                     {item.kind === 'task' && (
                       <button
-                        onClick={() => completeTask(item.id)}
+                        onClick={() => completeTask(item)}
                         disabled={completing === item.id}
-                        title="标记为完成"
+                        title={item.recurrence ? '完成并推进到下一周期' : '标记为完成'}
                         className="px-2 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                       >
                         {completing === item.id ? '...' : '✓ 完成'}
@@ -299,7 +375,8 @@ export function CalendarClient() {
                   </div>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
 

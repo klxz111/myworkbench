@@ -7,6 +7,7 @@ import {
   EntityType,
 } from '@/lib/markdown';
 import { createEntity, syncMarkdownToSqlite } from '@/lib/sync';
+import { parseExtras } from '@/lib/list-extras';
 
 export const runtime = 'nodejs';
 
@@ -64,17 +65,56 @@ export async function GET(
     }
 
     const db = initDb();
-    const rows = db.prepare('SELECT id, title, status, tags, updated_at FROM entities WHERE type = ? ORDER BY updated_at DESC').all(type) as any[];
+    const sp = request.nextUrl.searchParams;
+    const status = sp.get('status')?.trim() || '';
+    const tag = sp.get('tag')?.trim() || '';
+    const limitParam = sp.get('limit');
 
-    const data = rows.map((row) => ({
+    // 组合 WHERE：type 恒定，status/tag 可选（tags 是 JSON 列，用 json_each 匹配）
+    const whereParts = ['type = ?'];
+    const whereParams: (string | number)[] = [type];
+    if (status) {
+      whereParts.push('status = ?');
+      whereParams.push(status);
+    }
+    if (tag) {
+      whereParts.push('EXISTS (SELECT 1 FROM json_each(entities.tags) WHERE json_each.value = ?)');
+      whereParams.push(tag);
+    }
+    const where = whereParts.join(' AND ');
+
+    const mapRow = (row: any) => ({
       id: row.id,
       title: row.title,
       status: row.status,
       tags: JSON.parse(row.tags || '[]'),
       updated_at: row.updated_at,
-    }));
+      ...parseExtras(row.extra),
+    });
 
-    return NextResponse.json(data);
+    if (limitParam !== null) {
+      // 分页模式：{ items, total, facets }；不带 limit 的调用保持旧的纯数组形状（零破坏）
+      const limit = Math.min(Math.max(Number(limitParam) || 50, 1), 200);
+      const offset = Math.max(Number(sp.get('offset')) || 0, 0);
+      const totalRow = db.prepare(`SELECT COUNT(*) AS c FROM entities WHERE ${where}`).get(...whereParams) as { c: number };
+      const rows = db
+        .prepare(`SELECT id, title, status, tags, updated_at, extra FROM entities WHERE ${where} ORDER BY updated_at DESC, id DESC LIMIT ? OFFSET ?`)
+        .all(...whereParams, limit, offset) as any[];
+      // facets 覆盖该类型的全部条目（不受当前筛选影响），供工具栏下拉使用
+      const statusRows = db.prepare('SELECT status, COUNT(*) AS c FROM entities WHERE type = ? GROUP BY status ORDER BY status').all(type) as { status: string; c: number }[];
+      const tagRows = db.prepare(`SELECT json_each.value AS tag, COUNT(*) AS c FROM entities, json_each(entities.tags) WHERE entities.type = ? GROUP BY tag ORDER BY tag`).all(type) as { tag: string; c: number }[];
+      return NextResponse.json({
+        items: rows.map(mapRow),
+        total: totalRow.c,
+        facets: {
+          statuses: statusRows.map((r) => r.status),
+          tags: tagRows.map((r) => r.tag),
+        },
+      });
+    }
+
+    const rows = db.prepare(`SELECT id, title, status, tags, updated_at, extra FROM entities WHERE ${where} ORDER BY updated_at DESC, id DESC`).all(...whereParams) as any[];
+    return NextResponse.json(rows.map(mapRow));
   } catch (error) {
     console.error('Error fetching entities:', error);
     return NextResponse.json({ error: 'Failed to fetch entities' }, { status: 500 });

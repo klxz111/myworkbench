@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useListControls, ListToolbar } from '@/components/ListControls';
+import { useListControls, ListToolbar, LoadMoreRow, useEntityListPage } from '@/components/ListControls';
 
 interface Entity {
   id: string;
@@ -13,37 +12,21 @@ interface Entity {
 }
 
 export function PeopleClient() {
-  const [people, setPeople] = useState<Entity[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/entities/person');
-        const data = await res.json();
-        setPeople(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Error fetching people:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  const { items: people, total, facets, loading, loadingMore, hasMore, loadMore, reset } = useEntityListPage<Entity>('person');
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除此人员吗？')) return;
     try {
       const res = await fetch(`/api/entities/person/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('删除失败');
-      setPeople(people.filter((p) => p.id !== id));
+      await reset();
     } catch (error) {
       console.error('Error deleting person:', error);
       alert('删除人员失败');
     }
   };
 
-  const controls = useListControls(people);
+  const controls = useListControls(people, facets);
 
   if (loading) {
     return <div className="text-gray-500">加载人员中...</div>;
@@ -55,15 +38,16 @@ export function PeopleClient() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">人员</h2>
         </div>
-        {people.length > 0 && (
+        {total > 0 && (
           <ListToolbar {...controls.toolbar} placeholder="搜索人员姓名 / 标签..." />
         )}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          {people.length === 0 ? (
+          {total === 0 ? (
             <div className="p-6 text-center text-gray-500">暂无人员条目。</div>
           ) : controls.items.length === 0 ? (
             <div className="p-6 text-center text-gray-500">没有匹配当前筛选条件的人员条目。</div>
           ) : (
+            <>
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {controls.items.map((person) => (
                 <li key={person.id} className="flex items-center justify-between p-6">
@@ -106,6 +90,14 @@ export function PeopleClient() {
                 </li>
               ))}
             </ul>
+            <LoadMoreRow
+                        hasMore={hasMore}
+                        loading={loadingMore}
+                        loadedCount={controls.items.length}
+                        total={total}
+                        onLoadMore={loadMore}
+                      />
+                      </>
           )}
         </div>
       </section>
