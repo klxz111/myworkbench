@@ -102,6 +102,8 @@ export function CommandPalette() {
     setActiveIndex(0);
   }, []);
 
+  const handleOpenEvent = useCallback(() => setOpen(true), []);
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -115,7 +117,12 @@ export function CommandPalette() {
       }
     }
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    // 侧边栏/移动端搜索按钮通过该事件打开面板（Ctrl+K 之外的入口）
+    window.addEventListener('mwbench:open-palette', handleOpenEvent);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mwbench:open-palette', handleOpenEvent);
+    };
   }, [open, close]);
 
   useEffect(() => {

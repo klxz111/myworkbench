@@ -173,7 +173,7 @@ export function GraphClient() {
   return (
     <div
       className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
-      style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}
+      style={{ height: 'var(--graph-h)', minHeight: '500px' }}
     >
       <ReactFlow
         nodes={nodes}

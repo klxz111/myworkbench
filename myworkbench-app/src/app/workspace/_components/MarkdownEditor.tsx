@@ -269,7 +269,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
         )}
 
         <MarkdownToolbar view={editorView} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-340px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-350px)] md:h-[calc(100vh-280px)]">
           <div className="overflow-hidden">
             <div ref={editorRef} className="h-full" />
           </div>

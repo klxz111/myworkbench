@@ -3,129 +3,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { parseDateOnly } from '@/lib/date-utils';
-import { completeTaskPayload } from '@/lib/recurring';
-
-interface DatedItem {
-  id: string;
-  type: string;
-  title: string;
-  kind: string;
-  kind_label?: string;
-  date: string;
-  diff_days?: number;
-  href: string;
-  task_status?: string;
-  notes?: string;
-  recurrence?: string;
-  recurrence_until?: string;
-  occurrence?: string;
-}
+import { SectionCard, DatedItemList, completeDatedTask, DatedEntry } from '@/components/ui';
 
 interface TodayData {
   date: string;
-  overdue: DatedItem[];
-  today: DatedItem[];
-  upcoming: DatedItem[];
-  events_today: DatedItem[];
-  events_this_week: DatedItem[];
+  overdue: DatedEntry[];
+  today: DatedEntry[];
+  upcoming: DatedEntry[];
+  events_today: DatedEntry[];
+  events_this_week: DatedEntry[];
   doing: { id: string; title: string; href: string }[];
   todo_count: number;
   recent: { id: string; type: string; title: string; status: string; updated_at: string; href: string }[];
-}
-
-const KIND_COLORS: Record<string, string> = {
-  task: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  gate: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
-  followup: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  deadline: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  event: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-};
-
-/** kind → 编辑路由前缀（与详情路由不同：person/opportunity/task 的编辑都在 /entities 下） */
-const KIND_EDIT_PREFIX: Record<string, string> = {
-  task: '/entities/task',
-  gate: '/decisions',
-  followup: '/entities/person',
-  deadline: '/entities/opportunity',
-  event: '/events',
-};
-
-function ItemRow({
-  item,
-  showDue = true,
-  onComplete,
-}: {
-  item: DatedItem;
-  showDue?: boolean;
-  onComplete?: (item: DatedItem) => void;
-}) {
-  return (
-    <li className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded">
-      <Link href={item.href} className="flex items-center gap-3 flex-1 min-w-0">
-        <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${KIND_COLORS[item.kind] || KIND_COLORS.event}`}>
-          {item.kind_label || item.kind}
-        </span>
-        <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200" title={item.notes ? `备注：${item.notes}` : undefined}>
-          {item.title}
-        </span>
-        {showDue && item.diff_days !== undefined && (
-          <span className={`shrink-0 text-xs ${item.diff_days < 0 ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-400'}`}>
-            {item.diff_days < 0 ? `逾期 ${Math.abs(item.diff_days)} 天` : item.diff_days === 0 ? '今天' : `${item.diff_days} 天后`}
-          </span>
-        )}
-      </Link>
-      {item.kind === 'task' && onComplete && (
-        <button
-          onClick={() => onComplete(item)}
-          title={item.recurrence ? '完成并推进到下一周期' : '标记为完成'}
-          className="shrink-0 px-2 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700"
-        >
-          ✓
-        </button>
-      )}
-      <Link
-        href={`${KIND_EDIT_PREFIX[item.kind] || '/entities'}/${item.id}/edit`}
-        title="打开编辑页"
-        className="shrink-0 px-2 py-1 rounded text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-      >
-        编辑
-      </Link>
-    </li>
-  );
-}
-
-function Section({
-  title,
-  count,
-  tone,
-  children,
-}: {
-  title: string;
-  count?: number;
-  tone: 'red' | 'blue' | 'gray' | 'purple';
-  children: React.ReactNode;
-}) {
-  const toneClass =
-    tone === 'red'
-      ? 'border-l-red-500'
-      : tone === 'blue'
-      ? 'border-l-blue-500'
-      : tone === 'purple'
-      ? 'border-l-purple-500'
-      : 'border-l-gray-300 dark:border-l-gray-600';
-  return (
-    <section className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 border-l-4 ${toneClass} p-5`}>
-      <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-        {title}
-        {count !== undefined && count > 0 && (
-          <span className="ml-2 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300">
-            {count}
-          </span>
-        )}
-      </h2>
-      {children}
-    </section>
-  );
 }
 
 export function TodayClient() {
@@ -150,20 +39,9 @@ export function TodayClient() {
     load();
   }, [load]);
 
-  /** 就地完成任务：循环任务推进到下一周期，普通任务置 done */
-  const completeTask = async (item: DatedItem) => {
-    try {
-      const payload = completeTaskPayload(item, item.occurrence || item.date);
-      const res = await fetch(`/api/entities/task/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('更新失败');
-      load();
-    } catch (error) {
-      console.error('Error completing task:', error);
-    }
+  const handleComplete = async (item: DatedEntry) => {
+    await completeDatedTask(item);
+    load();
   };
 
   const quickAdd = async () => {
@@ -215,8 +93,10 @@ export function TodayClient() {
 
   return (
     <div className="space-y-5">
+      <p className="text-sm text-gray-400 dark:text-gray-500">{dateLabel}</p>
+
       {/* 快速捕获 */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="card p-5">
         <div className="flex gap-2">
           <input
             type="text"
@@ -224,12 +104,12 @@ export function TodayClient() {
             onChange={(e) => setQuickTitle(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !adding && quickAdd()}
             placeholder="快速添加今日任务，回车确认..."
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input flex-1"
           />
           <button
             onClick={quickAdd}
             disabled={adding || !quickTitle.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+            className="btn-primary shrink-0"
           >
             {adding ? '添加中...' : '添加'}
           </button>
@@ -239,45 +119,21 @@ export function TodayClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="space-y-5">
-          <Section title="已逾期" count={overdueCount} tone="red">
-            {overdueCount === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-1">没有逾期事项，保持得很好。</p>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {data.overdue.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
-                ))}
-              </ul>
-            )}
-          </Section>
+          <SectionCard title="已逾期" count={overdueCount}>
+            <DatedItemList items={data.overdue} emptyText="没有逾期事项，保持得很好。" onComplete={handleComplete} />
+          </SectionCard>
 
-          <Section title="今日到期" count={data.today.length} tone="blue">
-            {data.today.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-1">今天没有到期事项。</p>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {data.today.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
-                ))}
-              </ul>
-            )}
-          </Section>
+          <SectionCard title="今日到期" count={data.today.length}>
+            <DatedItemList items={data.today} emptyText="今天没有到期事项。" onComplete={handleComplete} />
+          </SectionCard>
 
-          <Section title="未来 7 天" count={data.upcoming.length} tone="gray">
-            {data.upcoming.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-1">未来一周暂无安排。</p>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {data.upcoming.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
-                ))}
-              </ul>
-            )}
-          </Section>
+          <SectionCard title="未来 7 天" count={data.upcoming.length}>
+            <DatedItemList items={data.upcoming} emptyText="未来一周暂无安排。" onComplete={handleComplete} />
+          </SectionCard>
         </div>
 
         <div className="space-y-5">
-          <Section title="进行中的任务" tone="purple">
+          <SectionCard title="进行中的任务">
             {data.doing.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-1">
                 没有进行中的任务{data.todo_count > 0 ? `（待办 ${data.todo_count} 个）` : ''}。
@@ -286,8 +142,8 @@ export function TodayClient() {
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {data.doing.map((t) => (
                   <li key={t.id}>
-                    <Link href={t.href} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <Link href={t.href} className="flex items-center gap-2 px-1 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
                       <span className="flex-1 truncate text-sm text-gray-900 dark:text-gray-200">{t.title}</span>
                     </Link>
                   </li>
@@ -297,33 +153,25 @@ export function TodayClient() {
             <Link href="/tasks" className="inline-block mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
               查看全部任务 →
             </Link>
-          </Section>
+          </SectionCard>
 
-          <Section title="今天的事件" count={data.events_today.length} tone="gray">
-            {data.events_today.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 py-1">今天没有事件记录。</p>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {data.events_today.map((item) => (
-                  <ItemRow key={item.id} item={item} showDue={false} />
-                ))}
-              </ul>
-            )}
+          <SectionCard title="今天的事件" count={data.events_today.length}>
+            <DatedItemList items={data.events_today} showDue={false} emptyText="今天没有事件记录。" />
             {data.events_this_week.length > 0 && (
               <Link href="/calendar" className="inline-block mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
                 本周还有 {data.events_this_week.length} 个事件，查看日历 →
               </Link>
             )}
-          </Section>
+          </SectionCard>
 
-          <Section title="最近一周变更" tone="gray">
+          <SectionCard title="最近一周变更">
             {data.recent.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-1">最近一周没有实体更新。</p>
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {data.recent.map((r) => (
                   <li key={`${r.type}-${r.id}`}>
-                    <Link href={r.href} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded">
+                    <Link href={r.href} className="flex items-center gap-2 px-1 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200">{r.title}</span>
                       <span className="shrink-0 text-xs text-gray-400">
                         {new Date(r.updated_at).toLocaleDateString('zh-CN')}
@@ -333,7 +181,7 @@ export function TodayClient() {
                 ))}
               </ul>
             )}
-          </Section>
+          </SectionCard>
         </div>
       </div>
     </div>

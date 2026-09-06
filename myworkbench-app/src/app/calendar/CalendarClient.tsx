@@ -213,7 +213,7 @@ export function CalendarClient() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 月历 */}
-      <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <div className="lg:col-span-2 card p-5">
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => move(-1)}
@@ -310,7 +310,7 @@ export function CalendarClient() {
       </div>
 
       {/* 选中日详情 */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 self-start">
+      <div className="card p-5 self-start">
         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
           {selectedDay ? `${month} 月 ${selectedDay} 日` : '选择一个日期'}
         </h3>

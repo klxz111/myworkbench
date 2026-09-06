@@ -135,7 +135,7 @@ export function TasksClient() {
                     return (
                       <li
                         key={task.id}
-                        className={`bg-white dark:bg-gray-800 rounded-lg shadow border-l-4 ${section.accent}`}
+                        className={`card border-l-4 ${section.accent}`}
                       >
                         <div className="flex items-center gap-3 px-4 py-3">
                           <input

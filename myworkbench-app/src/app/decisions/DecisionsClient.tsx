@@ -83,7 +83,7 @@ export function DecisionsClient() {
       {decisions.length > 0 && (
         <ListToolbar {...controls.toolbar} placeholder="搜索决策标题 / 标签..." />
       )}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {decisions.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
            暂无决策。创建您的第一个决策以开始。

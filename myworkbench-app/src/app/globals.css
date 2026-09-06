@@ -8,6 +8,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* 全屏画布高度：移动端扣顶栏 h-14，桌面侧边栏布局不占垂直空间 */
+  --graph-h: calc(100vh - 200px);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --graph-h: calc(100vh - 140px);
+  }
 }
 
 .dark {
@@ -26,6 +34,53 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * 设计 token：全站页面壳/卡片/按钮/徽章/空状态统一走这些组件类。
+ * 间距约定：页 py-8、卡片 p-5、列表行 p-4、section 间距 space-y-6。
+ * 新页面禁止手写 bg-white dark:bg-gray-800 rounded-lg shadow 组合，用 .card。
+ */
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .btn-ghost {
+    @apply px-3 py-1.5 rounded-lg text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 transition-colors;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-gray-900 dark:text-white;
+  }
+
+  .page-sub {
+    @apply mt-1 text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  .section-title {
+    @apply text-base font-semibold text-gray-900 dark:text-white;
+  }
 }
 
 /* 代码高亮：基础为 github 浅色，暗色用紧凑覆盖（避免双主题全局冲突） */

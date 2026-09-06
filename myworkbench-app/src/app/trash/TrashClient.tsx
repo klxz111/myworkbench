@@ -97,7 +97,7 @@ export function TrashClient() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="card">
         {items === null ? (
           <div className="p-6 text-center text-gray-500">加载回收站中...</div>
         ) : items.length === 0 ? (
