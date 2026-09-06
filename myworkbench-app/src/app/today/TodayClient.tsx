@@ -13,6 +13,8 @@ interface DatedItem {
   date: string;
   diff_days?: number;
   href: string;
+  task_status?: string;
+  notes?: string;
 }
 
 interface TodayData {
@@ -35,17 +37,31 @@ const KIND_COLORS: Record<string, string> = {
   event: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
 };
 
-function ItemRow({ item, showDue = true }: { item: DatedItem; showDue?: boolean }) {
+/** kind → 编辑路由前缀（与详情路由不同：person/opportunity/task 的编辑都在 /entities 下） */
+const KIND_EDIT_PREFIX: Record<string, string> = {
+  task: '/entities/task',
+  gate: '/decisions',
+  followup: '/entities/person',
+  deadline: '/entities/opportunity',
+  event: '/events',
+};
+
+function ItemRow({
+  item,
+  showDue = true,
+  onComplete,
+}: {
+  item: DatedItem;
+  showDue?: boolean;
+  onComplete?: (id: string) => void;
+}) {
   return (
-    <li>
-      <Link
-        href={item.href}
-        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded"
-      >
+    <li className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded">
+      <Link href={item.href} className="flex items-center gap-3 flex-1 min-w-0">
         <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${KIND_COLORS[item.kind] || KIND_COLORS.event}`}>
           {item.kind_label || item.kind}
         </span>
-        <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200">
+        <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200" title={item.notes ? `备注：${item.notes}` : undefined}>
           {item.title}
         </span>
         {showDue && item.diff_days !== undefined && (
@@ -53,6 +69,22 @@ function ItemRow({ item, showDue = true }: { item: DatedItem; showDue?: boolean 
             {item.diff_days < 0 ? `逾期 ${Math.abs(item.diff_days)} 天` : item.diff_days === 0 ? '今天' : `${item.diff_days} 天后`}
           </span>
         )}
+      </Link>
+      {item.kind === 'task' && onComplete && (
+        <button
+          onClick={() => onComplete(item.id)}
+          title="标记为完成"
+          className="shrink-0 px-2 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700"
+        >
+          ✓
+        </button>
+      )}
+      <Link
+        href={`${KIND_EDIT_PREFIX[item.kind] || '/entities'}/${item.id}/edit`}
+        title="打开编辑页"
+        className="shrink-0 px-2 py-1 rounded text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+      >
+        编辑
       </Link>
     </li>
   );
@@ -113,6 +145,21 @@ export function TodayClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /** 就地完成任务（复用任务实体的 status 字段） */
+  const completeTask = async (id: string) => {
+    try {
+      const res = await fetch(`/api/entities/task/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { status: 'done' } }),
+      });
+      if (!res.ok) throw new Error('更新失败');
+      load();
+    } catch (error) {
+      console.error('Error completing task:', error);
+    }
+  };
 
   const quickAdd = async () => {
     const title = quickTitle.trim();
@@ -193,7 +240,7 @@ export function TodayClient() {
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {data.overdue.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} />
+                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
                 ))}
               </ul>
             )}
@@ -205,7 +252,7 @@ export function TodayClient() {
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {data.today.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} />
+                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
                 ))}
               </ul>
             )}
@@ -217,7 +264,7 @@ export function TodayClient() {
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {data.upcoming.map((item) => (
-                  <ItemRow key={`${item.kind}-${item.id}`} item={item} />
+                  <ItemRow key={`${item.kind}-${item.id}`} item={item} onComplete={completeTask} />
                 ))}
               </ul>
             )}

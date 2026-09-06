@@ -100,6 +100,57 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
     }
   };
 
+  // 门控行内编辑：review_date 驱动日历/今日/通知，此前只能手改 md 文件
+  const [gateEditing, setGateEditing] = useState(false);
+  const [gateForm, setGateForm] = useState({ review_date: '', invalidate_if: '', pivot_signals: '' });
+  const [gateSaving, setGateSaving] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
+
+  const startGateEdit = () => {
+    setGateForm({
+      review_date: decision?.gate?.review_date ?? '',
+      invalidate_if: decision?.gate?.invalidate_if ?? '',
+      pivot_signals: (decision?.gate?.pivot_signals || []).join(', '),
+    });
+    setGateError(null);
+    setGateEditing(true);
+  };
+
+  const saveGate = async () => {
+    if (!decision) return;
+    setGateSaving(true);
+    setGateError(null);
+    try {
+      const invalidate = gateForm.invalidate_if.trim();
+      const signals = gateForm.pivot_signals.split(/[,，]/).map((s) => s.trim()).filter(Boolean);
+      // 三项全空视为移除门控；否则在原 gate 基础上合并，保留手工维护的其他子字段
+      const hasContent = Boolean(gateForm.review_date || invalidate || signals.length > 0);
+      const gate = hasContent
+        ? {
+            ...(decision.gate || {}),
+            review_date: gateForm.review_date || undefined,
+            invalidate_if: invalidate || undefined,
+            pivot_signals: signals.length > 0 ? signals : undefined,
+          }
+        : null;
+      const res = await fetch(`/api/entities/decision/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { gate } }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '保存失败');
+      }
+      setGateEditing(false);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      setGateError(err instanceof Error ? err.message : '保存门控失败');
+    } finally {
+      setGateSaving(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-gray-500">加载决策中...</div>;
   }
@@ -167,46 +218,113 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
         </div>
       </div>
 
-      {decision.gate && (
-        <section className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 ${
-          gateStatus.status === 'overdue' ? 'border-red-500' :
-          gateStatus.status === 'upcoming' ? 'border-amber-500' :
-          'border-emerald-500'
-        }`}>
+      {/* 门控区块恒渲染：无门控时提供「设置门控」入口（review_date 驱动日历/今日/通知） */}
+      <section className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 ${
+        !decision.gate ? 'border-gray-300 dark:border-gray-600' :
+        gateStatus.status === 'overdue' ? 'border-red-500' :
+        gateStatus.status === 'upcoming' ? 'border-amber-500' :
+        'border-emerald-500'
+      }`}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               门控状态
             </h3>
-            <span className={`text-sm font-medium ${gateStatus.color}`}>
-              {gateStatus.label}
-            </span>
+            <div className="flex items-center gap-3">
+              {!gateEditing && (
+                <span className={`text-sm font-medium ${gateStatus.color}`}>
+                  {gateStatus.label}
+                </span>
+              )}
+              {!gateEditing && (
+                <button
+                  onClick={startGateEdit}
+                  className="px-2.5 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  {decision.gate ? '编辑门控' : '设置门控'}
+                </button>
+              )}
+            </div>
           </div>
-          <div className="space-y-2 text-sm">
-            {decision.gate.invalidate_if && (
+
+          {gateEditing ? (
+            <form onSubmit={(e) => { e.preventDefault(); saveGate(); }} className="space-y-3">
               <div>
-                <span className="font-medium text-gray-700 dark:text-gray-300">失效条件：</span>
-                <p className="text-gray-600 dark:text-gray-400">{decision.gate.invalidate_if}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">审核日期（驱动日历「门控审核」与到期提醒）</label>
+                <input
+                  type="date"
+                  value={gateForm.review_date}
+                  onChange={(e) => setGateForm({ ...gateForm, review_date: e.target.value })}
+                  className="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
               </div>
-            )}
-            {decision.gate.review_date && (
               <div>
-                <span className="font-medium text-gray-700 dark:text-gray-300">审核日期：</span>
-                <p className="text-gray-600 dark:text-gray-400">{new Date(decision.gate.review_date).toLocaleDateString()}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">失效条件</label>
+                <textarea
+                  rows={2}
+                  value={gateForm.invalidate_if}
+                  onChange={(e) => setGateForm({ ...gateForm, invalidate_if: e.target.value })}
+                  placeholder="出现什么情况即判定此决策失效"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
               </div>
-            )}
-            {decision.gate.pivot_signals && decision.gate.pivot_signals.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700 dark:text-gray-300">转向信号：</span>
-                <ul className="mt-1 list-disc list-inside text-gray-600 dark:text-gray-400">
-                  {decision.gate.pivot_signals.map((signal, i) => (
-                    <li key={i}>{signal}</li>
-                  ))}
-                </ul>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">转向信号</label>
+                <input
+                  type="text"
+                  value={gateForm.pivot_signals}
+                  onChange={(e) => setGateForm({ ...gateForm, pivot_signals: e.target.value })}
+                  placeholder="逗号分隔，如：竞品发布同类功能, 关键指标连续下滑"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
               </div>
-            )}
-          </div>
+              {gateError && <p className="text-xs text-red-600 dark:text-red-400">{gateError}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={gateSaving}
+                  className="px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+                >
+                  {gateSaving ? '保存中...' : '保存门控'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGateEditing(false)}
+                  className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  取消
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-2 text-sm">
+              {decision.gate?.invalidate_if && (
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">失效条件：</span>
+                  <p className="text-gray-600 dark:text-gray-400">{decision.gate.invalidate_if}</p>
+                </div>
+              )}
+              {decision.gate?.review_date && (
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">审核日期：</span>
+                  <p className="text-gray-600 dark:text-gray-400">{new Date(decision.gate.review_date).toLocaleDateString()}</p>
+                </div>
+              )}
+              {decision.gate?.pivot_signals && decision.gate.pivot_signals.length > 0 && (
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">转向信号：</span>
+                  <ul className="mt-1 list-disc list-inside text-gray-600 dark:text-gray-400">
+                    {decision.gate.pivot_signals.map((signal, i) => (
+                      <li key={i}>{signal}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!decision.gate?.review_date && !decision.gate?.invalidate_if && !(decision.gate?.pivot_signals && decision.gate.pivot_signals.length > 0) && (
+                <p className="text-xs text-gray-400">尚未设置门控。点击右上角「设置门控」添加审核日期与失效条件。</p>
+              )}
+            </div>
+          )}
         </section>
-      )}
 
       {decision.context && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

@@ -11,6 +11,8 @@ export interface DatedItem {
   date: string;
   /** 任务的执行状态；任务完成/归档后不再算作到期项 */
   task_status?: string;
+  /** 任务备注（现有 notes 字段），日历/今日条目展示用 */
+  notes?: string;
   href: string;
 }
 
@@ -82,7 +84,11 @@ export function collectDatedItems(): DatedItem[] {
     const status = String(t.frontmatter.status || 'todo');
     if (status === 'done' || status === 'archived') continue;
     const item = push(out, 'task', t.id, 'task', t.frontmatter.title, t.frontmatter.due_date as string | undefined);
-    if (item) item.task_status = status;
+    if (item) {
+      item.task_status = status;
+      const notes = t.frontmatter.notes;
+      if (typeof notes === 'string' && notes.trim()) item.notes = notes.trim();
+    }
   }
 
   for (const d of listEntities('decision' as EntityType)) {

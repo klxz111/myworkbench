@@ -12,6 +12,21 @@ interface CalendarItem {
   day: number;
   diff_days: number;
   href: string;
+  task_status?: string;
+  notes?: string;
+}
+
+/** kind → 编辑路由前缀（与详情路由不同：person/opportunity/task 的编辑都在 /entities 下） */
+const KIND_EDIT_PREFIX: Record<string, string> = {
+  task: '/entities/task',
+  gate: '/decisions',
+  followup: '/entities/person',
+  deadline: '/entities/opportunity',
+  event: '/events',
+};
+
+function editHrefFor(item: CalendarItem): string {
+  return `${KIND_EDIT_PREFIX[item.kind] || '/entities'}/${item.id}/edit`;
 }
 
 const KIND_DOT: Record<string, string> = {
@@ -54,6 +69,10 @@ export function CalendarClient() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [items, setItems] = useState<CalendarItem[] | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(now.getDate());
+  const [quickTitle, setQuickTitle] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [completing, setCompleting] = useState<string | null>(null);
 
   const load = useCallback(async (y: number, m: number) => {
     setItems(null);
@@ -97,6 +116,55 @@ export function CalendarClient() {
   }, [items]);
 
   const selectedItems = selectedDay ? itemsByDay.get(selectedDay) || [] : [];
+
+  /** 就地完成任务（复用任务实体的 status 字段） */
+  const completeTask = async (id: string) => {
+    setCompleting(id);
+    try {
+      const res = await fetch(`/api/entities/task/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { status: 'done' } }),
+      });
+      if (!res.ok) throw new Error('更新失败');
+      await load(year, month);
+    } catch (error) {
+      console.error('Error completing task:', error);
+    } finally {
+      setCompleting(null);
+    }
+  };
+
+  /** 把任务安排到选中日期（复用 /today 快速添加的任务创建） */
+  const addTaskToDay = async () => {
+    const title = quickTitle.trim();
+    if (!title || selectedDay === null) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      const slug = `task-${Date.now().toString(36)}`;
+      const due = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+      const res = await fetch('/api/entities/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          data: { id: slug, type: 'task', title, status: 'todo', due_date: due },
+          content: '',
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '创建失败');
+      }
+      setQuickTitle('');
+      await load(year, month);
+    } catch (err) {
+      setAddError(err instanceof Error ? err.message : '添加失败');
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -193,23 +261,70 @@ export function CalendarClient() {
         {selectedItems.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500">这一天没有安排。</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {selectedItems.map((item) => (
-              <li key={`${item.kind}-${item.id}`}>
-                <Link
-                  href={item.href}
-                  className="block p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                >
-                  <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${KIND_BADGE[item.kind] || KIND_BADGE.event}`}>
-                    {item.kind_label || item.kind}
-                  </span>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-gray-200">{item.title}</p>
-                  {item.diff_days === 0 && <p className="text-xs text-blue-600 dark:text-blue-400">今天</p>}
-                  {item.diff_days < 0 && <p className="text-xs text-red-600 dark:text-red-400">已过期</p>}
-                </Link>
+              <li key={`${item.kind}-${item.id}`} className="p-2 rounded border border-gray-100 dark:border-gray-700">
+                <div className="flex items-start justify-between gap-2">
+                  <Link href={item.href} className="flex-1 min-w-0">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${KIND_BADGE[item.kind] || KIND_BADGE.event}`}>
+                      {item.kind_label || item.kind}
+                    </span>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-200">{item.title}</p>
+                    {item.notes && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2" title="任务备注">
+                        备注：{item.notes}
+                      </p>
+                    )}
+                    {item.diff_days === 0 && <p className="text-xs text-blue-600 dark:text-blue-400">今天</p>}
+                    {item.diff_days < 0 && <p className="text-xs text-red-600 dark:text-red-400">已过期</p>}
+                  </Link>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    {item.kind === 'task' && (
+                      <button
+                        onClick={() => completeTask(item.id)}
+                        disabled={completing === item.id}
+                        title="标记为完成"
+                        className="px-2 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {completing === item.id ? '...' : '✓ 完成'}
+                      </button>
+                    )}
+                    <Link
+                      href={editHrefFor(item)}
+                      title="打开编辑页"
+                      className="px-2 py-1 rounded text-xs border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-center"
+                    >
+                      编辑
+                    </Link>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
+        )}
+
+        {/* 把任务安排到选中日期（复用任务实体与 /today 的快速添加模式） */}
+        {selectedDay !== null && (
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={quickTitle}
+                onChange={(e) => setQuickTitle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !adding && addTaskToDay()}
+                placeholder={`添加任务到 ${month} 月 ${selectedDay} 日，回车确认...`}
+                className="flex-1 min-w-0 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={addTaskToDay}
+                disabled={adding || !quickTitle.trim()}
+                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm shrink-0"
+              >
+                {adding ? '添加中...' : '添加'}
+              </button>
+            </div>
+            {addError && <p className="mt-1.5 text-xs text-red-600">{addError}</p>}
+          </div>
         )}
       </div>
     </div>

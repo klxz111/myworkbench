@@ -50,24 +50,13 @@ export function GenericCreateClient({ type }: GenericCreateProps) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSave = async (data: EntityFormData) => {
-    try {
-      const res = await fetch(`/api/entities/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '创建失败' }));
-        throw new Error(err.error || '创建失败');
-      }
-      setSaved(true);
-      setTimeout(() => {
-        router.push(TYPE_LIST_PATHS[type] || `/${type}s`);
-      }, 800);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '创建失败');
-    }
+  // EntityForm 内部已完成 POST 创建并返回保存后的实体，这里只做跳转，不能再重复提交
+  const handleSave = (_savedEntity: EntityFormData) => {
+    setError(null);
+    setSaved(true);
+    setTimeout(() => {
+      router.push(TYPE_LIST_PATHS[type] || `/${type}s`);
+    }, 800);
   };
 
   if (saved) {
