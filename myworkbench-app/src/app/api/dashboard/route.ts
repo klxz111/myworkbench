@@ -199,6 +199,8 @@ export async function GET(request: NextRequest) {
           updated_at: String(fm.updated_at || ''),
           gate_status: gateStatus,
           diff_days: diff,
+          // 平铺一份 review_date：首页 GateReviewList 直接读它（gate 对象也保留，供其它消费方用）
+          review_date: reviewDate,
           gate,
         };
       })

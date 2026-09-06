@@ -68,6 +68,7 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
     { key: 'date', label: '日期', type: 'date' },
     { key: 'summary', label: '摘要', type: 'textarea' },
     { key: 'strength', label: '强度', type: 'select', options: ['strong', 'moderate', 'weak'] },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '该文献支撑的智源知识树节点名（逗号分隔），/knowledge 页会按节点聚合文献' },
   ],
   belief: [
     { key: 'description', label: '描述', type: 'textarea' },

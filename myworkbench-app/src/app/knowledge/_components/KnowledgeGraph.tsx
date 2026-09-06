@@ -38,6 +38,7 @@ const TYPE_LABELS: Record<string, string> = {
   profile: '档案',
   opportunity: '机会',
   task: '任务',
+  evidence: '文献',
 };
 
 /** 一级领域节点按 size 判定（300/200），其余按热度开方铺开 */

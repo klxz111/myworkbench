@@ -5,8 +5,8 @@ import { syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
 
-/** 参与知识树定位的实体类型 */
-const POSITION_TYPES: EntityType[] = ['research', 'profile', 'opportunity', 'task'];
+/** 参与知识树定位的实体类型（evidence=文献笔记，树节点能看到支撑文献） */
+const POSITION_TYPES: EntityType[] = ['research', 'profile', 'opportunity', 'task', 'evidence'];
 
 export interface KnowledgePosition {
   type: EntityType;
