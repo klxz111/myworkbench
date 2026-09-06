@@ -6,6 +6,7 @@ import { DataManagement } from '@/components/DataManagement';
 import { InsightsContent } from '@/components/InsightsCard';
 import { LauncherWidget } from '@/components/LauncherWidget';
 import { PinnedContent } from '@/components/PinnedCard';
+import { ReadingQueueWidget } from '@/components/ReadingQueueWidget';
 import { SectionCard, DatedItemList, completeDatedTask, DatedEntry, StatusBadge } from '@/components/ui';
 import { entityHref } from '@/lib/entity-paths';
 import { getHomeLayout, setHomeLayout, getIdentity, IdentityPrefs, HomeLayout } from '@/lib/prefs';
@@ -80,6 +81,7 @@ type WidgetKey =
   | 'overdue'
   | 'today'
   | 'gates'
+  | 'readingQueue'
   | 'quickCapture'
   | 'pinned'
   | 'launcher'
@@ -92,6 +94,7 @@ const WIDGET_META: Record<WidgetKey, { title: string; column: 'left' | 'right' |
   overdue: { title: '已逾期', column: 'left' },
   today: { title: '今日到期', column: 'left' },
   gates: { title: '待审核门控', column: 'left' },
+  readingQueue: { title: '待读文献', column: 'left' },
   quickCapture: { title: '快速捕获', column: 'right' },
   pinned: { title: '置顶', column: 'right' },
   launcher: { title: '快速启动', column: 'right' },
@@ -106,6 +109,7 @@ const DEFAULT_ORDER: WidgetKey[] = [
   'overdue',
   'today',
   'gates',
+  'readingQueue',
   'quickCapture',
   'pinned',
   'launcher',
@@ -320,6 +324,8 @@ export function HomeClient() {
         return <DatedItemList items={dueToday} emptyText="今天没有到期事项。" onComplete={handleComplete} />;
       case 'gates':
         return <GateReviewList items={pendingReviews} />;
+      case 'readingQueue':
+        return <ReadingQueueWidget />;
       case 'quickCapture':
         return (
           <div>

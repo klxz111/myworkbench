@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader, EmptyState } from '@/components/ui';
+import { buildPaperNote } from '@/lib/paper-note';
 
 /**
  * RSS 订阅：左列订阅源（未读徽章/错误标记/删除），右列条目（未读点/外链/摘要/存为证据）。
@@ -239,52 +240,62 @@ export function RssClient() {
     }
   };
 
-  const saveAsEvidence = async (entry: Entry) => {
+  const markEntryRead = async (entry: Entry) => {
+    if (entry.read === 1) return;
+    applyRead(entry.id, true);
+    try {
+      await fetch(`/api/rss/entries/${entry.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true }),
+      });
+    } catch {
+      /* 已读失败不阻塞 */
+    }
+  };
+
+  /** 统一创建 evidence：kind=news 即证据；kind=paper 生成文献笔记模板进待读队列 */
+  const createEvidenceFromEntry = async (entry: Entry, kind: 'news' | 'paper', successText: string) => {
     setSavingId(entry.id);
     try {
       const slug = `evidence-${Date.now().toString(36)}`;
+      const base: Record<string, unknown> = {
+        id: slug,
+        type: 'evidence',
+        title: entry.title,
+        status: kind === 'paper' ? 'draft' : 'active',
+        tags: [kind === 'paper' ? 'paper' : 'rss'],
+        source_type: kind === 'paper' ? 'paper' : 'news',
+        source_url: entry.link || '',
+        date: entry.published_at ? entry.published_at.slice(0, 10) : '',
+        summary: entry.summary || '',
+      };
+      let content = '';
+      if (kind === 'paper') {
+        const note = buildPaperNote({ title: entry.title, url: entry.link || '', summary: entry.summary || '', date: entry.published_at ? entry.published_at.slice(0, 10) : '' });
+        Object.assign(base, note.data);
+        content = note.content;
+      }
       const res = await fetch('/api/entities/evidence', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug,
-          data: {
-            id: slug,
-            type: 'evidence',
-            title: entry.title,
-            status: 'active',
-            tags: ['rss'],
-            source_type: 'news',
-            source_url: entry.link || '',
-            date: entry.published_at ? entry.published_at.slice(0, 10) : '',
-            summary: entry.summary || '',
-          },
-          content: '',
-        }),
+        body: JSON.stringify({ slug, data: base, content }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || '保存失败');
       }
-      if (!(entry.read === 1)) {
-        applyRead(entry.id, true);
-        try {
-          await fetch(`/api/rss/entries/${entry.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ read: true }),
-          });
-        } catch {
-          /* 已读失败不阻塞 */
-        }
-      }
-      flash('已存为证据（标签 rss）✓');
+      await markEntryRead(entry);
+      flash(successText);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '存为证据失败');
+      alert(err instanceof Error ? err.message : '保存失败');
     } finally {
       setSavingId(null);
     }
   };
+
+  const saveAsEvidence = (entry: Entry) => createEvidenceFromEntry(entry, 'news', '已存为证据（标签 rss）✓');
+  const saveAsPaper = (entry: Entry) => createEvidenceFromEntry(entry, 'paper', '已加入待读文献（附笔记模板）✓');
 
   const totalUnread = feeds.reduce((sum, f) => sum + f.unread, 0);
   const selectedFeedTitle = selectedFeed !== null ? feeds.find((f) => f.id === selectedFeed)?.title : null;
@@ -536,12 +547,20 @@ export function RssClient() {
                             {isRead ? '标为未读' : '标为已读'}
                           </button>
                           <button
+                            onClick={() => saveAsPaper(entry)}
+                            disabled={savingId === entry.id}
+                            title="建文献笔记（TL;DR/方法/实验设置模板），加入待读队列"
+                            className="px-2 py-1 rounded text-xs btn-ghost whitespace-nowrap disabled:opacity-50"
+                          >
+                            {savingId === entry.id ? '...' : '文献'}
+                          </button>
+                          <button
                             onClick={() => saveAsEvidence(entry)}
                             disabled={savingId === entry.id}
                             title="把这条存进证据链（evidence，标签 rss）"
                             className="px-2 py-1 rounded text-xs btn-ghost whitespace-nowrap disabled:opacity-50"
                           >
-                            {savingId === entry.id ? '保存中...' : '存为证据'}
+                            存为证据
                           </button>
                         </div>
                       </div>

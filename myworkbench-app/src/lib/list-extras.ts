@@ -11,6 +11,7 @@ export const LIST_EXTRA_FIELDS: Record<string, string[]> = {
   decision: ['gate'],
   person: ['next_action_date'],
   opportunity: ['deadline'],
+  evidence: ['source_type', 'source_url', 'date'],
 };
 
 /** 深归一化：gray-matter 把 frontmatter 里的无引号日期（含嵌套对象内的，如 gate.review_date）解析成 Date */
