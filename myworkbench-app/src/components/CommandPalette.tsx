@@ -43,6 +43,7 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '图谱', href: '/graph' },
   { label: '工作台', href: '/workspace' },
   { label: '回收站', href: '/trash' },
+  { label: '设置', href: '/settings' },
 ];
 
 const CREATE_TYPES = ['decision', 'task', 'evidence', 'experiment', 'opportunity', 'person', 'event', 'belief'];

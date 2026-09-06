@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { NOTIFY_ENABLED_KEY } from '@/lib/prefs';
 
 interface NotificationItem {
   id: string;
@@ -20,7 +21,6 @@ interface NotificationsResponse {
 }
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
-const NOTIFY_ENABLED_KEY = 'mwbench_notify_enabled';
 const NOTIFIED_IDS_KEY = 'mwbench_notified_ids';
 
 function loadNotifiedIds(): Set<string> {

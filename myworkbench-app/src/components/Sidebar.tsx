@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CommandPalette } from '@/components/CommandPalette';
 import { NotificationBell } from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getStartPage } from '@/lib/prefs';
 
 /**
  * 全站页面框架：桌面左侧分组侧边栏（可折叠二级下拉）+ 移动端顶栏/抽屉。
@@ -174,14 +175,44 @@ function SidebarTools({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex items-center gap-1 px-1">
         <NotificationBell placement="left" />
         <ThemeToggle />
+        <Link
+          href="/settings"
+          onClick={onNavigate}
+          title="设置"
+          aria-label="设置"
+          className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </Link>
       </div>
     </>
   );
 }
 
 function Brand() {
+  // 品牌点击落到「起始页」偏好（默认 /，可在 /settings 修改）。
+  // 点击时实时读取而非仅在挂载时读取：设置页修改后无需刷新即生效（Sidebar 在 SPA 导航中不会重挂载）。
+  const router = useRouter();
   return (
-    <Link href="/" className="flex items-center gap-2.5 px-4 h-16 shrink-0 group">
+    <Link
+      href="/"
+      onClick={(e) => {
+        const start = getStartPage();
+        if (start !== '/') {
+          e.preventDefault();
+          router.push(start);
+        }
+      }}
+      className="flex items-center gap-2.5 px-4 h-16 shrink-0 group"
+    >
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold shadow-sm group-hover:shadow transition-shadow">
         M
       </span>
