@@ -19,6 +19,11 @@ core_questions:
 literature:
   - paper-0001
   - paper-0002
+knowledge_tree:
+  - 持续学习
+  - AI 系统与硬件
+  - 混合专家模型
+updated_at: '2026-09-06T07:13:45.611Z'
 ---
 
 My research identity centers on continual learning and hardware alignment. This identity is stable across model paradigm changes (LLM → MoE → Future), while technical branches adapt to current frontier.

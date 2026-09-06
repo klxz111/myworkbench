@@ -17,6 +17,7 @@ interface Research {
   findings?: string;
   confidence?: string;
   related_papers?: string[];
+  knowledge_tree?: string[];
 }
 
 interface ResearchDetailProps {
@@ -91,6 +92,26 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
           </div>
         </div>
       </div>
+
+      {research.knowledge_tree && research.knowledge_tree.length > 0 && (
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">知识树定位</h3>
+          <div className="flex flex-wrap gap-2">
+            {research.knowledge_tree.map((name) => (
+              <Link
+                key={name}
+                href="/knowledge"
+                className="px-2.5 py-1 rounded-full text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60"
+              >
+                {name}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-gray-400">
+            在「<Link href="/knowledge" className="text-blue-600 dark:text-blue-400 hover:underline">知识树</Link>」页可查看这些方向在智源热度版图中的位置
+          </p>
+        </section>
+      )}
 
       {research.summary && (
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

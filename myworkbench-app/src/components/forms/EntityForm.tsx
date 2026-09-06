@@ -157,6 +157,28 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
             />
           )}
 
+          {field.type === 'list' && (
+            <input
+              type="text"
+              value={
+                Array.isArray(formData[field.key])
+                  ? (formData[field.key] as string[]).join(', ')
+                  : (formData[field.key] as string) || ''
+              }
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  [field.key]: e.target.value
+                    .split(/[,，]/)
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                })
+              }
+              placeholder="逗号分隔，如：持续学习, AI 系统与硬件"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            />
+          )}
+
           {field.type === 'select' && field.options && (
             <select
               value={formData[field.key] as string || ''}

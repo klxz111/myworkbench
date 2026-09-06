@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getStoredTheme, toggleTheme, effectiveTheme, useIsDarkTheme, type ThemeMode } from '@/lib/theme';
+import { getStoredTheme, toggleTheme, useIsDarkTheme, type ThemeMode } from '@/lib/theme';
 
 export function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>('system');
@@ -20,7 +20,8 @@ export function ThemeToggle() {
   return (
     <button
       onClick={handleToggle}
-      title={`当前：${effectiveTheme(mode) === 'dark' ? '暗色' : '浅色'}（存储偏好：${mode}）`}
+      // isDark 挂载后才同步 DOM 状态，SSR 与首次渲染一致，避免 hydration 不匹配
+      title={`当前：${isDark ? '暗色' : '浅色'}（存储偏好：${mode}）`}
       className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
       aria-label="切换明暗主题"
     >

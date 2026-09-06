@@ -32,6 +32,7 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '决策', href: '/decisions' },
   { label: '雷达', href: '/radar' },
   { label: '网络', href: '/network' },
+  { label: '知识树', href: '/knowledge' },
   { label: '档案', href: '/profile' },
   { label: '资本', href: '/capital' },
   { label: '证据', href: '/evidence' },

@@ -31,6 +31,10 @@ export interface ForceGraphOptions {
   gravity?: number;
   /** 速度阻尼（0-1，越大阻尼越小） */
   damping?: number;
+  /** 分组向心：返回节点所属组号（如领域），同组节点额外向组质心靠拢 */
+  groupOf?: (id: string) => number | undefined;
+  /** 分组聚合力（默认 0.1；与 gravity 叠加） */
+  groupGravity?: number;
 }
 
 const DEFAULTS = {
@@ -45,6 +49,8 @@ export class ForceSimulation {
   private nodeById: Map<string, SimNode>;
   private edges: { a: SimNode; b: SimNode }[];
   private opts: typeof DEFAULTS;
+  private groupOf?: (id: string) => number | undefined;
+  private groupGravity: number;
   /** 活跃度：1 起步，每帧衰减，低于阈值停止；拖拽/初始化时 reheat */
   alpha = 1;
 
@@ -80,6 +86,8 @@ export class ForceSimulation {
       };
     });
     this.nodeById = new Map(this.nodes.map((n) => [n.id, n]));
+    this.groupOf = opts.groupOf;
+    this.groupGravity = opts.groupGravity ?? 0.1;
     this.edges = edges
       .map((e) => {
         const a = this.nodeById.get(e.source);
@@ -143,6 +151,28 @@ export class ForceSimulation {
       a.vy += fy;
       b.vx -= fx;
       b.vy -= fy;
+    }
+
+    // 分组向心：同组节点向本组质心靠拢（领域聚类布局）
+    if (this.groupOf) {
+      const centroids = new Map<number, { x: number; y: number; n: number }>();
+      for (const n of nodes) {
+        const g = this.groupOf(n.id);
+        if (g === undefined) continue;
+        const c = centroids.get(g) || { x: 0, y: 0, n: 0 };
+        c.x += n.x;
+        c.y += n.y;
+        c.n++;
+        centroids.set(g, c);
+      }
+      for (const n of nodes) {
+        if (n.fx !== undefined && n.fy !== undefined) continue;
+        const g = this.groupOf(n.id);
+        const c = g !== undefined ? centroids.get(g) : undefined;
+        if (!c || c.n === 0) continue;
+        n.vx += ((c.x / c.n) - n.x) * this.groupGravity * this.alpha;
+        n.vy += ((c.y / c.n) - n.y) * this.groupGravity * this.alpha;
+      }
     }
 
     // 积分 + 阻尼 + 位移上限

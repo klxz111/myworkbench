@@ -20,6 +20,7 @@ const SECONDARY_ITEMS = [
   { href: '/research', label: 'RESEARCH' },
   { href: '/radar', label: 'RADAR' },
   { href: '/network', label: 'NETWORK' },
+  { href: '/knowledge', label: '知识树' },
   { href: '/calendar', label: '日历' },
   { href: '/daily', label: '每日笔记' },
   { href: '/review', label: '每周回顾' },

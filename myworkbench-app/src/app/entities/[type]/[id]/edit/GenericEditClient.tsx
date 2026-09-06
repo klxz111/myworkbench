@@ -82,14 +82,14 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
     );
   }
 
+  // 完整透传 GET 返回的 frontmatter 展开字段（含知识树定位等新增字段），只做兜底默认值
   const initialData: EntityData = {
+    ...entity,
     id: entity.id,
     title: entity.title,
     status: entity.status,
     tags: entity.tags,
     content: entity.content,
-    created_at: entity.created_at,
-    updated_at: entity.updated_at,
   };
 
   return (

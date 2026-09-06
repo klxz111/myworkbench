@@ -1,7 +1,7 @@
 export interface FieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'select' | 'tags' | 'date' | 'number';
+  type: 'text' | 'textarea' | 'select' | 'tags' | 'date' | 'number' | 'list';
   options?: string[];
   hint?: string;
 }
@@ -72,6 +72,7 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
   research: [
     { key: 'identity', label: '研究身份', type: 'textarea' },
     { key: 'core_questions', label: '核心问题', type: 'textarea' },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '智源 AI 知识树节点名（逗号分隔），保存后 /knowledge 页会高亮你的研究定位' },
   ],
   person: [
     { key: 'organization', label: '组织', type: 'text' },
@@ -88,6 +89,7 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
     { key: 'risk', label: '风险', type: 'text' },
     { key: 'timing', label: '时机', type: 'text' },
     { key: 'deadline', label: '截止日期', type: 'date' },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '该机会覆盖的智源知识树节点名（逗号分隔）' },
   ],
   experiment: [
     { key: 'hypothesis', label: '假设', type: 'textarea' },
@@ -115,6 +117,7 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
   profile: [
     { key: 'versions', label: '版本 (JSON)', type: 'textarea' },
     { key: 'compiled_from', label: '编译来源', type: 'text' },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '智源 AI 知识树节点名（逗号分隔），保存后 /knowledge 页会高亮你的定位' },
   ],
   event: [
     { key: 'event_date', label: '事件日期', type: 'date' },
@@ -132,5 +135,6 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
     { key: 'due_date', label: '截止日期', type: 'date' },
     { key: 'priority', label: '优先级', type: 'select', options: ['high', 'medium', 'low'] },
     { key: 'notes', label: '备注', type: 'textarea' },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '任务涉及的智源知识树节点名（逗号分隔）' },
   ],
 };
