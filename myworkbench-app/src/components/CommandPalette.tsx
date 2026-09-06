@@ -42,6 +42,7 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '看板', href: '/board' },
   { label: '图谱', href: '/graph' },
   { label: '工作台', href: '/workspace' },
+  { label: 'RSS 订阅', href: '/rss' },
   { label: '回收站', href: '/trash' },
   { label: '设置', href: '/settings' },
 ];

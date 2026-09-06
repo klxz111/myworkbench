@@ -79,6 +79,38 @@ export function initDb() {
     )
   `);
 
+  // RSS 订阅：独立于 Markdown 实体的"源数据缓存"（数据来自网络抓取，不参与 sync/导出）。
+  // 删库重建后订阅源可重新抓取，但已读状态会丢。
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS rss_feeds (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL UNIQUE,
+      site_url TEXT,
+      description TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      last_fetched_at TEXT,
+      last_error TEXT
+    )
+  `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS rss_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      feed_id INTEGER NOT NULL REFERENCES rss_feeds(id) ON DELETE CASCADE,
+      guid TEXT NOT NULL,
+      title TEXT NOT NULL,
+      link TEXT,
+      author TEXT,
+      published_at TEXT,
+      summary TEXT,
+      read INTEGER DEFAULT 0,
+      fetched_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(feed_id, guid)
+    )
+  `);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_feed_published ON rss_entries(feed_id, published_at DESC)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_read ON rss_entries(feed_id, read)`);
+
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(type)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_status ON entities(status)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_updated_at ON entities(updated_at)`);

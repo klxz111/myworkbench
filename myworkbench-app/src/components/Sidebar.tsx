@@ -51,6 +51,7 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string }[] }[] 
     items: [
       { href: '/daily', label: '每日笔记' },
       { href: '/workspace', label: '工作台' },
+      { href: '/rss', label: 'RSS 订阅' },
     ],
   },
   {
