@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 const ENTITY_TYPES_SAFE = [
   'strategy', 'research', 'decision', 'project', 'experiment', 'person',
   'evidence', 'belief', 'opportunity', 'radar', 'capital', 'profile',
-  'event', 'organization', 'task',
+  'event', 'organization', 'task', 'idea',
 ] as const;
 
 const CACHE_TTL_MS = 60_000;

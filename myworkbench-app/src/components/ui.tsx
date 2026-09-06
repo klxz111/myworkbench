@@ -83,6 +83,11 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   todo: { label: '待办', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
   doing: { label: '进行中', cls: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' },
   done: { label: '已完成', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
+  idea: { label: '想法', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
+  exploring: { label: '调研中', cls: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' },
+  validating: { label: '验证中', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  adopted: { label: '已立项', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
+  shelved: { label: '已搁置', cls: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
 };
 
 export function StatusBadge({ status }: { status: string }) {

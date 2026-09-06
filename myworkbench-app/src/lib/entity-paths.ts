@@ -15,6 +15,7 @@ export const ENTITY_HREFS: Record<string, string> = {
   event: '/events',
   organization: '/organizations',
   task: '/entities/task',
+  idea: '/ideas',
 };
 
 /** 实体类型 → 中文名 */
@@ -34,6 +35,7 @@ export const ENTITY_LABELS: Record<string, string> = {
   event: '事件',
   organization: '组织',
   task: '任务',
+  idea: '想法',
 };
 
 /** 实体类型 → 列表页路由（大多数类型与详情前缀相同；task 的列表页是 /tasks） */

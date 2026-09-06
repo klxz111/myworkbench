@@ -29,6 +29,7 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string }[] }[] 
       { href: '/decisions', label: '决策' },
       { href: '/evidence', label: '证据' },
       { href: '/belief', label: '信念' },
+      { href: '/ideas', label: '想法看板' },
       { href: '/research', label: '研究' },
       { href: '/experiment', label: '实验' },
       { href: '/knowledge', label: '知识树' },

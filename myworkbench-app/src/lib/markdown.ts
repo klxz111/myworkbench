@@ -17,7 +17,8 @@ export type EntityType =
   | 'profile'
   | 'event'
   | 'organization'
-  | 'task';
+  | 'task'
+  | 'idea';
 
 export const ENTITY_DIRS: Record<EntityType, string> = {
   strategy: 'strategy',
@@ -35,6 +36,7 @@ export const ENTITY_DIRS: Record<EntityType, string> = {
   event: 'events',
   organization: 'organizations',
   task: 'tasks',
+  idea: 'ideas',
 };
 
 export interface EntityFrontmatter {

@@ -114,6 +114,16 @@ export const TYPE_SPECIFIC_FIELDS: Record<string, FieldDef[]> = {
     { key: 'follow_up', label: '后续跟进', type: 'textarea' },
     { key: 'artifacts', label: '产物链接', type: 'textarea', hint: 'wandb / 日志 / 代码，一行一个' },
   ],
+  idea: [
+    // 覆盖 COMMON status：想法生命周期（/ideas 看板按此分列）
+    { key: 'status', label: '状态', type: 'select', options: ['idea', 'exploring', 'validating', 'adopted', 'shelved'], option_labels: { idea: '想法', exploring: '调研中', validating: '验证中', adopted: '已立项', shelved: '已搁置' } },
+    { key: 'hypothesis', label: '一句话假设', type: 'textarea', hint: '如果 X，那么 Y（要可验证）' },
+    { key: 'novelty', label: '新颖性', type: 'select', options: ['high', 'medium', 'low'], option_labels: { high: '高', medium: '中', low: '低' } },
+    { key: 'feasibility', label: '可行性', type: 'select', options: ['high', 'medium', 'low'], option_labels: { high: '高', medium: '中', low: '低' } },
+    { key: 'related', label: '相关工作 / 验证实验', type: 'textarea', hint: '文献笔记、实验卡片或 wiki 链接，一行一个' },
+    { key: 'next_step', label: '下一步动作', type: 'text' },
+    { key: 'knowledge_tree', label: '知识树定位', type: 'list', hint: '该想法覆盖的智源知识树节点名（逗号分隔）' },
+  ],
   radar: [
     { key: 'category', label: '类别', type: 'select', options: ['ai_research', 'frontier_lab', 'company', 'university', 'hardware', 'ml_systems', 'robotics', 'funding', 'policy', 'immigration', 'ecosystem'] },
     { key: 'signal_strength', label: '信号强度', type: 'select', options: ['high', 'medium', 'low'] },

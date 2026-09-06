@@ -38,3 +38,4 @@ coverage
 
 # Deepwork state
 .slim/deepwork/
+- entities/.trash/

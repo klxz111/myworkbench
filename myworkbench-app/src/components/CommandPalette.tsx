@@ -33,6 +33,7 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '雷达', href: '/radar' },
   { label: '网络', href: '/network' },
   { label: '知识树', href: '/knowledge' },
+  { label: '想法看板', href: '/ideas' },
   { label: '档案', href: '/profile' },
   { label: '资本', href: '/capital' },
   { label: '证据', href: '/evidence' },
@@ -47,7 +48,7 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '设置', href: '/settings' },
 ];
 
-const CREATE_TYPES = ['decision', 'task', 'evidence', 'experiment', 'opportunity', 'person', 'event', 'belief'];
+const CREATE_TYPES = ['decision', 'task', 'evidence', 'experiment', 'opportunity', 'person', 'event', 'belief', 'idea'];
 
 export function CommandPalette() {
   const router = useRouter();
