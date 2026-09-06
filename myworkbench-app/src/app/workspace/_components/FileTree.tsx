@@ -197,7 +197,16 @@ export function FileTree({ refreshKey = 0 }: { refreshKey?: number }) {
       const res = await fetch('/api/workspace/tree');
       if (!res.ok) throw new Error('Failed to load tree');
       const data = await res.json();
-      setTree(data.tree || []);
+      const nextTree: TreeNode[] = data.tree || [];
+      setTree(nextTree);
+      // 顶级目录默认展开（折叠状态持久语义仍归用户点击控制；恢复/刷新后保持已展开的）
+      setExpandedSet((prev) => {
+        const next = new Set(prev);
+        for (const node of nextTree) {
+          if (node.type === 'directory') next.add(node.path);
+        }
+        return next;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载失败');
     } finally {
