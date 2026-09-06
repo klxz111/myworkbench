@@ -21,7 +21,7 @@ export function PeopleClient() {
       try {
         const res = await fetch('/api/entities/person');
         const data = await res.json();
-        setPeople(data);
+        setPeople(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching people:', error);
       } finally {

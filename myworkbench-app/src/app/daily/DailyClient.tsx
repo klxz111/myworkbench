@@ -71,7 +71,7 @@ export function DailyClient() {
     setCreating(true);
     try {
       const dateStr = today.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || '';
-      await fetch(`/api/workspace/file?path=${encodeURIComponent(today)}`, {
+      const res = await fetch(`/api/workspace/file?path=${encodeURIComponent(today)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,6 +83,7 @@ export function DailyClient() {
           },
         }),
       });
+      if (!res.ok) throw new Error('创建今日笔记失败');
       setExistsToday(true);
       setSelectedPath(today);
       loadList();

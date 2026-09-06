@@ -24,8 +24,8 @@ export function ProjectsClient() {
           fetch('/api/entities/project').then((r) => r.json()),
           fetch('/api/entities/experiment').then((r) => r.json()),
         ]);
-        setProjects(projectsRes);
-        setExperiments(experimentsRes);
+        setProjects(Array.isArray(projectsRes) ? projectsRes : []);
+        setExperiments(Array.isArray(experimentsRes) ? experimentsRes : []);
       } catch (error) {
         console.error('Error fetching projects:', error);
       } finally {

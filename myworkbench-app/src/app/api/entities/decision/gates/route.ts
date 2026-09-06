@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { initDb } from '@/lib/db';
-import { readEntity, EntityType } from '@/lib/markdown';
+import { NextResponse } from 'next/server';
+import { listEntities, EntityType } from '@/lib/markdown';
+import { normalizeDateValue } from '@/lib/date-utils';
+import { diffDays } from '@/lib/due-items';
+import { syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
 
@@ -19,41 +21,32 @@ interface GateDecision {
   diff_days?: number;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const db = initDb();
-    const rows = db.prepare(
-      'SELECT id, title, status, tags, updated_at FROM entities WHERE type = ? ORDER BY updated_at DESC'
-    ).all('decision') as any[];
+    // 直接读 Markdown：DB 的 id 是 frontmatter id，而 readEntity 按文件 slug 解析，二者可能不同
+    syncMarkdownToSqlite();
 
-    const now = new Date();
+    const result: GateDecision[] = listEntities('decision' as EntityType).map((entity) => {
+      const fm = entity.frontmatter as Record<string, unknown>;
+      const gate = (fm.gate as GateDecision['gate']) || null;
+      const base = {
+        id: String(fm.id || entity.id),
+        title: String(fm.title || entity.id),
+        status: String(fm.status || 'active'),
+        tags: Array.isArray(fm.tags) ? (fm.tags as string[]) : [],
+        updated_at: String(fm.updated_at || ''),
+        gate,
+      };
 
-    const result: GateDecision[] = rows.map((row) => {
-      const fileEntity = readEntity('decision' as EntityType, row.id);
-      const gate = fileEntity?.frontmatter.gate as GateDecision['gate'] || null;
-
-      if (!gate?.review_date) {
-        return {
-          id: row.id,
-          title: row.title,
-          status: row.status,
-          tags: JSON.parse(row.tags || '[]'),
-          updated_at: row.updated_at,
-          gate,
-          gate_status: 'no_review_date',
-        };
+      const reviewDate = normalizeDateValue(gate?.review_date);
+      if (!reviewDate) {
+        return { ...base, gate_status: 'no_review_date' };
       }
 
-      const reviewDate = new Date(gate.review_date);
-      const diffDays = Math.ceil((reviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (diffDays < 0) {
-        return { id: row.id, title: row.title, status: row.status, tags: JSON.parse(row.tags || '[]'), updated_at: row.updated_at, gate, gate_status: 'overdue', diff_days: diffDays };
-      }
-      if (diffDays <= 7) {
-        return { id: row.id, title: row.title, status: row.status, tags: JSON.parse(row.tags || '[]'), updated_at: row.updated_at, gate, gate_status: 'upcoming', diff_days: diffDays };
-      }
-      return { id: row.id, title: row.title, status: row.status, tags: JSON.parse(row.tags || '[]'), updated_at: row.updated_at, gate, gate_status: 'scheduled', diff_days: diffDays };
+      const diff = diffDays(reviewDate);
+      if (diff < 0) return { ...base, gate_status: 'overdue', diff_days: diff };
+      if (diff <= 7) return { ...base, gate_status: 'upcoming', diff_days: diff };
+      return { ...base, gate_status: 'scheduled', diff_days: diff };
     });
 
     return NextResponse.json(result);

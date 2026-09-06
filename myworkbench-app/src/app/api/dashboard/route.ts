@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDb } from '@/lib/db';
-import matter from 'gray-matter';
+import { listEntities, EntityType } from '@/lib/markdown';
+import { normalizeDateValue } from '@/lib/date-utils';
+import { diffDays } from '@/lib/due-items';
+import { syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
 
@@ -63,6 +66,8 @@ export async function GET(request: NextRequest) {
     }
 
     const db = initDb();
+    // 自愈：保证 SQLite 缓存与 Markdown 一致（含旧库重建后的回填）
+    syncMarkdownToSqlite();
 
     const recentRows = db.prepare(
       'SELECT id, type, title, status, tags, updated_at FROM entities ORDER BY updated_at DESC LIMIT 20'
@@ -150,73 +155,50 @@ export async function GET(request: NextRequest) {
       updated_at: row.updated_at,
     }));
 
-    const followUpRows = db.prepare(
-      "SELECT id, type, title, status, tags, updated_at, content FROM entities WHERE type = ? AND content LIKE '%next_action_date%' ORDER BY updated_at DESC"
-    ).all('person') as any[];
-
-    const followUps: Array<DashboardItem & { diff_days: number }> = followUpRows
-      .map((row) => {
-        try {
-          const frontmatterMatch = row.content.match(/next_action_date:\s*([^\n]+)/);
-          const nextActionDate = frontmatterMatch ? frontmatterMatch[1].trim().replace(/['"]/g, '') : null;
-          if (!nextActionDate) return null;
-          const actionDate = new Date(nextActionDate);
-          const now = new Date();
-          const diffDays = Math.ceil((actionDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          return {
-            id: row.id,
-            type: row.type,
-            title: row.title,
-            status: row.status,
-            tags: JSON.parse(row.tags || '[]'),
-            updated_at: row.updated_at,
-            diff_days: diffDays,
-          };
-        } catch {
-          return null;
-        }
+    // SQLite 的 content 列只存 Markdown 正文，frontmatter 不在其中；
+    // 跟进提醒与门控审核必须读 Markdown 文件本身
+    const followUps: Array<DashboardItem & { diff_days: number }> = listEntities('person' as EntityType)
+      .map((p) => {
+        const fm = p.frontmatter as Record<string, unknown>;
+        const nextActionDate = normalizeDateValue(fm.next_action_date);
+        if (!nextActionDate) return null;
+        return {
+          id: p.id,
+          type: p.type as string,
+          title: String(fm.title || p.id),
+          status: String(fm.status || 'active'),
+          tags: Array.isArray(fm.tags) ? (fm.tags as string[]) : [],
+          updated_at: String(fm.updated_at || ''),
+          diff_days: diffDays(nextActionDate),
+        };
       })
       .filter((item): item is DashboardItem & { diff_days: number } => item !== null)
       .sort((a, b) => a.diff_days - b.diff_days)
       .slice(0, 8);
 
-    const decisionRowsForReview = db.prepare(
-      'SELECT id, type, title, status, tags, updated_at, content FROM entities WHERE type = ? ORDER BY updated_at DESC'
-    ).all('decision') as any[];
-
-    const pending_reviews = decisionRowsForReview
-      .map((row) => {
-        const tags = JSON.parse(row.tags || '[]');
-        let gateStatus: string = 'scheduled';
-        let diffDays: number | undefined;
-        let gate: DecisionGate | undefined;
-        try {
-          const parsed = matter(row.content || '');
-          const frontmatter = parsed.data as Record<string, unknown>;
-          gate = (frontmatter.gate as DecisionGate) || undefined;
-          const reviewDate = gate?.review_date as string | undefined;
-          if (!reviewDate) {
-            gateStatus = 'no_review_date';
-          } else {
-            const now = new Date();
-            const review = new Date(reviewDate);
-            diffDays = Math.ceil((review.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            if (diffDays < 0) gateStatus = 'overdue';
-            else if (diffDays <= 7) gateStatus = 'upcoming';
-            else gateStatus = 'scheduled';
-          }
-        } catch {
-          gateStatus = 'scheduled';
+    const pending_reviews = listEntities('decision' as EntityType)
+      .map((d) => {
+        const fm = d.frontmatter as Record<string, unknown>;
+        const gate = (fm.gate as DecisionGate) || undefined;
+        const reviewDate = normalizeDateValue(gate?.review_date);
+        let gateStatus = 'scheduled';
+        let diff: number | undefined;
+        if (!reviewDate) {
+          gateStatus = 'no_review_date';
+        } else {
+          diff = diffDays(reviewDate);
+          if (diff < 0) gateStatus = 'overdue';
+          else if (diff <= 7) gateStatus = 'upcoming';
         }
         return {
-          id: row.id,
-          type: row.type,
-          title: row.title,
-          status: row.status,
-          tags,
-          updated_at: row.updated_at,
+          id: d.id,
+          type: d.type as string,
+          title: String(fm.title || d.id),
+          status: String(fm.status || 'active'),
+          tags: Array.isArray(fm.tags) ? (fm.tags as string[]) : [],
+          updated_at: String(fm.updated_at || ''),
           gate_status: gateStatus,
-          diff_days: diffDays,
+          diff_days: diff,
           gate,
         };
       })

@@ -27,12 +27,22 @@ export interface SyncResult {
   skipped: number;
 }
 
-function stableHash(obj: unknown, content: string): string {
-  const normalized = JSON.stringify(
-    obj,
-    Object.keys(obj as Record<string, unknown>).sort()
-  );
-  return computeContentHash(normalized + content);
+/** 递归排序 key 的稳定序列化：JSON.stringify 的 replacer 数组只会过滤顶层 key，嵌套对象（如 decision.gate）会丢 */
+function sortValue(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortValue);
+  if (v && typeof v === 'object' && !(v instanceof Date)) {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(v as Record<string, unknown>).sort()) {
+      out[k] = sortValue((v as Record<string, unknown>)[k]);
+    }
+    return out;
+  }
+  return v;
+}
+
+/** 实体内容指纹：frontmatter（递归排序 key）+ 正文。所有写入方（create/update/sync）必须共用同一公式 */
+export function stableHash(obj: unknown, content: string): string {
+  return computeContentHash(JSON.stringify(sortValue(obj)) + content);
 }
 
 export function syncMarkdownToSqlite(): SyncResult {
@@ -68,8 +78,10 @@ export function syncMarkdownToSqlite(): SyncResult {
         const contentHash = stableHash(entity.frontmatter, entity.content);
 
         const existing = db.prepare(
-          'SELECT id, content_hash FROM entities WHERE id = ?'
-        ).get(entity.id) as { id: string; content_hash: string } | undefined;
+          'SELECT id, content_hash, file_path, type, slug FROM entities WHERE id = ?'
+        ).get(entity.id) as
+          | { id: string; content_hash: string; file_path: string; type: string; slug: string }
+          | undefined;
 
         if (!existing) {
           db.prepare(
@@ -87,9 +99,16 @@ export function syncMarkdownToSqlite(): SyncResult {
             entity.content
           );
           result.created++;
-        } else if (existing.content_hash !== contentHash) {
+        } else if (
+          existing.content_hash !== contentHash ||
+          existing.file_path !== entity.filePath ||
+          existing.type !== entity.type ||
+          existing.slug !== entity.slug
+        ) {
+          // 文件路径/类型/slug 变化（重命名、移动目录）也必须写回，
+          // 否则下方按 file_path 的删除清判会把实体从索引里误删
           db.prepare(
-            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, updated_at = datetime('now')
+            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, file_path = ?, type = ?, slug = ?, updated_at = datetime('now')
              WHERE id = ?`
           ).run(
             entity.frontmatter.title,
@@ -97,6 +116,9 @@ export function syncMarkdownToSqlite(): SyncResult {
             JSON.stringify(entity.frontmatter.tags || []),
             contentHash,
             entity.content,
+            entity.filePath,
+            entity.type,
+            entity.slug,
             entity.id
           );
           result.updated++;
@@ -141,7 +163,8 @@ export function createEntity(
   };
   const entity = writeEntity(type, slug, normalized, normalized.content);
 
-  const contentHash = stableHash(normalized, normalized.content);
+  // 与 syncMarkdownToSqlite 完全相同的公式：frontmatter 不含 content 键
+  const contentHash = stableHash(entity.frontmatter, normalized.content);
 
   db.prepare(
     `INSERT OR IGNORE INTO entities (id, type, slug, title, status, tags, file_path, content_hash, content, created_at, updated_at)
@@ -228,6 +251,11 @@ export function buildRelations(): number {
       if (fm.linked_opportunities && Array.isArray(fm.linked_opportunities)) {
         for (const target of fm.linked_opportunities) {
           expected.push({ from: entity.id, to: String(target), relation: 'has_opportunity' });
+        }
+      }
+      if (fm.linked_strategies && Array.isArray(fm.linked_strategies)) {
+        for (const target of fm.linked_strategies) {
+          expected.push({ from: entity.id, to: String(target), relation: 'belongs_to_strategy' });
         }
       }
 

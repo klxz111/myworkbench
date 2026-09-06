@@ -13,13 +13,13 @@ interface SnapshotEntity {
   raw: string;
 }
 
-const DIR_TO_TYPE: Record<string, EntityType> = Object.entries(ENTITY_DIRS).reduce(
-  (acc, [type, dir]) => {
-    acc[dir] = type as EntityType;
-    return acc;
-  },
-  {} as Record<string, EntityType>
-);
+const DIR_TO_TYPE: Record<string, EntityType> = Object.create(null);
+for (const [type, dir] of Object.entries(ENTITY_DIRS)) {
+  DIR_TO_TYPE[dir] = type as EntityType;
+}
+
+/** 文件名只能是普通 .md 文件名：防止 "../x.md" 之类把内容写到 entities 目录之外 */
+const SAFE_FILE_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.md$/;
 
 /** 导入 JSON 快照（由 /api/export?format=json 生成）；mode: merge 跳过已存在 | replace 覆盖 */
 export async function POST(request: NextRequest) {
@@ -47,6 +47,11 @@ export async function POST(request: NextRequest) {
         const type = DIR_TO_TYPE[entity.dir];
         if (!type) {
           errors.push(`未知目录：${entity.dir}`);
+          skipped++;
+          continue;
+        }
+        if (!SAFE_FILE_RE.test(entity.file)) {
+          errors.push(`非法文件名：${entity.file}`);
           skipped++;
           continue;
         }

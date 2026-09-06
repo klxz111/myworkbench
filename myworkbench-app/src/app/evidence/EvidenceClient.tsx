@@ -32,7 +32,7 @@ export function EvidenceClient() {
       try {
         const res = await fetch('/api/entities/evidence');
         const data = await res.json();
-        setEvidence(data);
+        setEvidence(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching evidence:', error);
       } finally {

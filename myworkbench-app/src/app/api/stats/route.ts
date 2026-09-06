@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { initDb } from '@/lib/db';
 import { listEntities, EntityType } from '@/lib/markdown';
-import { ENTITY_LABELS, ENTITY_HREFS } from '@/lib/entity-paths';
+import { ENTITY_LABELS, ENTITY_LIST_HREFS } from '@/lib/entity-paths';
 import { CAPITAL_DIMENSIONS } from '@/lib/fields';
+import { syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +16,7 @@ const VERDICT_LABELS: Record<string, string> = {
 
 export async function GET() {
   try {
+    syncMarkdownToSqlite();
     const db = initDb();
 
     // 1. 实体构成
@@ -23,13 +25,13 @@ export async function GET() {
       count: number;
     }[];
     const entity_counts = rows
-      .map((r) => ({ type: r.type, label: ENTITY_LABELS[r.type] || r.type, href: ENTITY_HREFS[r.type] || '/entities', count: r.count }))
+      .map((r) => ({ type: r.type, label: ENTITY_LABELS[r.type] || r.type, href: ENTITY_LIST_HREFS[r.type] || '/entities', count: r.count }))
       .sort((a, b) => b.count - a.count);
 
-    // 2. 活动热力图：近 84 天每日更新数（SQLite updated_at 为 'YYYY-MM-DD HH:MM:SS'）
+    // 2. 活动热力图：近 84 天每日更新数（updated_at 为 UTC，转本地日期再分桶）
     const activityRows = db
       .prepare(
-        `SELECT substr(updated_at, 1, 10) as day, COUNT(*) as count
+        `SELECT substr(date(updated_at, 'localtime'), 1, 10) as day, COUNT(*) as count
          FROM entities
          WHERE updated_at >= datetime('now', '-83 days')
          GROUP BY day`
@@ -63,16 +65,19 @@ export async function GET() {
       .sort((a, b) => String(a.sortKey).localeCompare(String(b.sortKey)));
     const capital_trend = capitals.map(({ sortKey: _s, ...rest }) => rest);
 
-    // 4. 决策判定分布
-    const verdicts = db
-      .prepare(
-        `SELECT json_extract(content, '$.verdict') as verdict, COUNT(*) as count
-         FROM entities WHERE type = 'decision' GROUP BY verdict`
-      )
-      .all() as { verdict: string | null; count: number }[];
-    const decision_verdicts = verdicts
-      .filter((v) => v.verdict)
-      .map((v) => ({ verdict: v.verdict as string, label: VERDICT_LABELS[v.verdict as string] || v.verdict, count: v.count }));
+    // 4. 决策判定分布（verdict 在 frontmatter 里；content 列存的是 Markdown 正文，json_extract 必然抛错）
+    const verdictCounts = new Map<string, number>();
+    for (const d of listEntities('decision' as EntityType)) {
+      const verdict = (d.frontmatter as Record<string, unknown>).verdict;
+      if (typeof verdict === 'string' && verdict) {
+        verdictCounts.set(verdict, (verdictCounts.get(verdict) || 0) + 1);
+      }
+    }
+    const decision_verdicts = Array.from(verdictCounts.entries()).map(([verdict, count]) => ({
+      verdict,
+      label: VERDICT_LABELS[verdict] || verdict,
+      count,
+    }));
 
     // 5. 任务状态
     const taskRows = db.prepare("SELECT status, COUNT(*) as count FROM entities WHERE type = 'task' GROUP BY status").all() as {

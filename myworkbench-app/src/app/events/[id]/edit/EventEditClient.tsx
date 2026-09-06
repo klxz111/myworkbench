@@ -85,7 +85,8 @@ export function EventEditClient({ id }: EventEditProps) {
       const res = await fetch(`/api/entities/event/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data }),
+        // content 必须放在顶层：PUT 的 body.content 才会生效，否则描述编辑被静默丢弃
+        body: JSON.stringify({ data, content: form.content }),
       });
 
       if (!res.ok) throw new Error('保存失败');

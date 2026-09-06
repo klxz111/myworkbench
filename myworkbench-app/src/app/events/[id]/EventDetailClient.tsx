@@ -13,7 +13,7 @@ interface Event {
   updated_at: string;
   content: string;
   event_type?: string;
-  date?: string;
+  event_date?: string;
   location?: string;
   participants?: string[];
 }
@@ -82,7 +82,7 @@ export function EventDetailClient({ id }: EventDetailProps) {
                 {event.status}
               </span>
               {event.event_type && <span>类型：{event.event_type}</span>}
-              {event.date && <span>日期：{event.date}</span>}
+              {event.event_date && <span>日期：{event.event_date}</span>}
               {event.location && <span>地点：{event.location}</span>}
               <span>更新：{new Date(event.updated_at).toLocaleDateString()}</span>
             </div>

@@ -36,6 +36,12 @@ export const ENTITY_LABELS: Record<string, string> = {
   task: '任务',
 };
 
+/** 实体类型 → 列表页路由（大多数类型与详情前缀相同；task 的列表页是 /tasks） */
+export const ENTITY_LIST_HREFS: Record<string, string> = {
+  ...ENTITY_HREFS,
+  task: '/tasks',
+};
+
 export function entityHref(type: string, id: string): string {
   return `${ENTITY_HREFS[type] || '/entities'}/${id}`;
 }

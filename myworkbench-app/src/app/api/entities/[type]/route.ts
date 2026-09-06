@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initDb } from '@/lib/db';
 import {
   listEntities,
+  isKnownEntityType,
+  isValidSlug,
   EntityType,
 } from '@/lib/markdown';
-import { createEntity } from '@/lib/sync';
+import { createEntity, syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +16,13 @@ export async function GET(
 ) {
   try {
     const { type } = await params;
+    if (!isKnownEntityType(type)) {
+      return NextResponse.json({ error: 'Unknown entity type' }, { status: 404 });
+    }
     const q = request.nextUrl.searchParams.get('q')?.trim() || '';
+
+    // 自愈：保证 SQLite 缓存与 Markdown 一致（含旧库重建后的回填）
+    syncMarkdownToSqlite();
 
     if (q) {
       const entities = listEntities(type as EntityType);
@@ -79,11 +87,17 @@ export async function POST(
 ) {
   try {
     const { type } = await params;
+    if (!isKnownEntityType(type)) {
+      return NextResponse.json({ error: 'Unknown entity type' }, { status: 404 });
+    }
     const body = await request.json();
     const { slug, data, content } = body;
 
     if (!slug || !data || typeof content !== 'string') {
       return NextResponse.json({ error: 'Missing required fields: slug, data, content' }, { status: 400 });
+    }
+    if (!isValidSlug(slug)) {
+      return NextResponse.json({ error: '非法的 slug' }, { status: 400 });
     }
 
     const entityData = {

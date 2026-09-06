@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface DatedItem {
   id: string;
@@ -153,12 +154,12 @@ export function TodayClient() {
   if (!data) return <div className="text-red-500">加载失败</div>;
 
   const overdueCount = data.overdue.length;
-  const dateLabel = new Date(data.date).toLocaleDateString('zh-CN', {
+  const dateLabel = parseDateOnly(data.date)?.toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     weekday: 'long',
-  });
+  }) ?? data.date;
 
   return (
     <div className="space-y-5">

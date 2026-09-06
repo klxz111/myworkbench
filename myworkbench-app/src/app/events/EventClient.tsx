@@ -21,7 +21,7 @@ export function EventClient() {
       try {
         const res = await fetch('/api/entities/event');
         const data = await res.json();
-        setEvents(data);
+        setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching events:', error);
       } finally {

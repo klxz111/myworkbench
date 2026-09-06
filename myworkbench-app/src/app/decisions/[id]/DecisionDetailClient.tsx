@@ -7,6 +7,7 @@ import { RelationsSection } from '@/components/RelationsSection';
 import { BacklinksSection } from '@/components/BacklinksSection';
 import { StatusTimeline } from '@/components/StatusTimeline';
 import { ResultFeedbackPanel } from './ResultFeedbackPanel';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface Decision {
   id: string;
@@ -44,9 +45,14 @@ function getGateStatus(gate?: { review_date?: string } | null): { status: GateSt
   if (!gate?.review_date) {
     return { status: 'no_review_date', label: '未设置审核日期', color: 'text-gray-500' };
   }
-  const now = new Date();
-  const reviewDate = new Date(gate.review_date);
-  const diffDays = Math.ceil((reviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const reviewDate = parseDateOnly(gate.review_date);
+  if (!reviewDate) {
+    return { status: 'no_review_date', label: '未设置审核日期', color: 'text-gray-500' };
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  reviewDate.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((reviewDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays < 0) {
     return { status: 'overdue', label: `已逾期 ${Math.abs(diffDays)} 天`, color: 'text-red-600 dark:text-red-400' };
   }
@@ -61,6 +67,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchDecision() {
@@ -78,7 +85,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
       }
     }
     fetchDecision();
-  }, [id]);
+  }, [id, refreshKey]);
 
   const handleDelete = async () => {
     if (!confirm('确定要删除此决策吗？')) return;
@@ -296,6 +303,7 @@ export function DecisionDetailClient({ id }: DecisionDetailProps) {
         actualResult={decision.actual_result}
         beliefUpdate={decision.belief_update}
         verdict={decision.verdict}
+        onRecorded={() => setRefreshKey((k) => k + 1)}
       />
 
       <StatusTimeline createdAt={decision.created_at} updatedAt={decision.updated_at} status={decision.status} />

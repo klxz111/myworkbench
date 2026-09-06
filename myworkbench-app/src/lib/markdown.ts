@@ -75,7 +75,31 @@ export function getEntityDir(type: EntityType): string {
   return path.join(/* turbopackIgnore: true */ getEntityRoot(), ENTITY_DIRS[type]);
 }
 
+/** 类型是否有效（hasOwnProperty 防原型链 key 如 constructor 通过校验） */
+export function isKnownEntityType(type: string): type is EntityType {
+  return typeof type === 'string' && Object.prototype.hasOwnProperty.call(ENTITY_DIRS, type);
+}
+
+/** slug 只能是普通文件名：禁止路径分隔符与 ..，防止路径穿越 */
+export function isValidSlug(slug: unknown): slug is string {
+  return (
+    typeof slug === 'string' &&
+    slug.length > 0 &&
+    slug !== '.' &&
+    !slug.includes('/') &&
+    !slug.includes('\\') &&
+    !slug.includes('..') &&
+    !/[<>:"|?*\x00-\x1f]/.test(slug)
+  );
+}
+
 export function resolveEntityPath(type: EntityType, slug: string): string {
+  if (!isKnownEntityType(type)) {
+    throw new Error(`未知实体类型：${String(type)}`);
+  }
+  if (!isValidSlug(slug)) {
+    throw new Error(`非法实体 ID：${String(slug)}`);
+  }
   return path.join(getEntityDir(type), `${slug}.md`);
 }
 
@@ -96,6 +120,36 @@ export function readEntity(type: EntityType, slug: string): EntityFile | null {
   };
 }
 
+/**
+ * 将 frontmatter 中 gray-matter 解析出的 Date 还原为字符串，
+ * 否则 js-yaml dump 会把无引号日期改写成带时间的 ISO 串，破坏手工维护的文件格式
+ */
+function yamlSafeValue(v: unknown): unknown {
+  if (v instanceof Date) {
+    if (isNaN(v.getTime())) return null;
+    // 无引号 YAML 日期解析为 UTC 零点 Date，还原为纯日期字符串
+    if (
+      v.getUTCHours() === 0 &&
+      v.getUTCMinutes() === 0 &&
+      v.getUTCSeconds() === 0 &&
+      v.getUTCMilliseconds() === 0
+    ) {
+      const p = (n: number) => String(n).padStart(2, '0');
+      return `${v.getUTCFullYear()}-${p(v.getUTCMonth() + 1)}-${p(v.getUTCDate())}`;
+    }
+    return v.toISOString();
+  }
+  if (Array.isArray(v)) return v.map(yamlSafeValue);
+  if (v && typeof v === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      out[k] = yamlSafeValue(val);
+    }
+    return out;
+  }
+  return v;
+}
+
 export function writeEntity(
   type: EntityType,
   slug: string,
@@ -110,7 +164,8 @@ export function writeEntity(
 
   // content 属于正文，不应写进 frontmatter
   const { content: _ignored, ...frontmatterOnly } = data as Record<string, unknown>;
-  const file = matter.stringify(content, frontmatterOnly);
+  const normalizedFm = yamlSafeValue(frontmatterOnly) as EntityFrontmatter;
+  const file = matter.stringify(content, normalizedFm);
   fs.writeFileSync(/* turbopackIgnore: true */ filePath, file, 'utf-8');
 
   return {
@@ -118,7 +173,7 @@ export function writeEntity(
     type,
     slug,
     filePath,
-    frontmatter: data,
+    frontmatter: normalizedFm,
     content,
   };
 }

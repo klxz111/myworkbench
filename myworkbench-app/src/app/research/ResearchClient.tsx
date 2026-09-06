@@ -24,8 +24,8 @@ export function ResearchClient() {
           fetch('/api/entities/research').then((r) => r.json()),
           fetch('/api/entities/evidence').then((r) => r.json()),
         ]);
-        setResearch(researchRes);
-        setEvidence(evidenceRes);
+        setResearch(Array.isArray(researchRes) ? researchRes : []);
+        setEvidence(Array.isArray(evidenceRes) ? evidenceRes : []);
       } catch (error) {
         console.error('Error fetching research data:', error);
       } finally {

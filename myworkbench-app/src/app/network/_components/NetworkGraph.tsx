@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ForceSimulation, SimNode } from '@/lib/force-graph';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface GraphNode {
   id: string;
@@ -77,11 +78,11 @@ const STRENGTH_STROKE: Record<string, string> = {
 };
 
 function daysUntil(dateStr: string): number | null {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return null;
+  const d = parseDateOnly(dateStr);
+  if (!d) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
   return Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 

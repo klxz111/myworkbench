@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EntityForm, EntityFormData } from '@/components/forms/EntityForm';
+import { ENTITY_LIST_HREFS } from '@/lib/entity-paths';
 
 interface EntityData {
   id: string;
@@ -38,23 +39,6 @@ const TYPE_LABELS: Record<string, string> = {
   organization: '组织',
 };
 
-const TYPE_LIST_PATHS: Record<string, string> = {
-  strategy: '/strategy',
-  decision: '/decisions',
-  research: '/research',
-  evidence: '/evidence',
-  project: '/projects',
-  experiment: '/experiment',
-  belief: '/belief',
-  person: '/people',
-  opportunity: '/opportunity',
-  radar: '/radar',
-  capital: '/capital',
-  profile: '/profile',
-  event: '/events',
-  organization: '/organizations',
-};
-
 export function GenericEditClient({ type, id }: GenericEditProps) {
   const router = useRouter();
   const [entity, setEntity] = useState<EntityData | null>(null);
@@ -80,24 +64,13 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
     fetchEntity();
   }, [type, id]);
 
-  const handleSave = async (data: EntityFormData) => {
-    try {
-      const res = await fetch(`/api/entities/${type}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '保存失败' }));
-        throw new Error(err.error || '保存失败');
-      }
-      setSaved(true);
-      setTimeout(() => {
-        router.push(`/${type}s`);
-      }, 800);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失败');
-    }
+  // EntityForm 内部已完成 PUT 保存并返回保存后的实体，这里只做跳转，不能再重复提交
+  const handleSave = (_savedEntity: EntityFormData) => {
+    setError(null);
+    setSaved(true);
+    setTimeout(() => {
+      router.push(ENTITY_LIST_HREFS[type] || `/${type}s`);
+    }, 800);
   };
 
   if (loading) {
@@ -109,7 +82,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到该条目'}</p>
         <Link
-          href={TYPE_LIST_PATHS[type] || `/${type}s`}
+          href={ENTITY_LIST_HREFS[type] || `/${type}s`}
           className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline"
         >
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type + 's'}
@@ -144,7 +117,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
       <EntityForm type={type} initialData={entity} onSuccess={handleSave} />
       <div className="mt-6">
         <Link
-          href={`/${type}s`}
+          href={ENTITY_LIST_HREFS[type] || `/${type}s`}
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type + 's'}

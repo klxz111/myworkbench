@@ -1,4 +1,5 @@
 import { listEntities, EntityType } from './markdown';
+import { dayStartMs, parseDateOnly, normalizeDateValue } from './date-utils';
 
 export type DueKind = 'task' | 'gate' | 'followup' | 'deadline' | 'event';
 
@@ -30,30 +31,18 @@ export const KIND_LABELS: Record<DueKind, string> = {
 };
 
 function dayStart(d: Date): number {
-  const c = new Date(d);
-  c.setHours(0, 0, 0, 0);
-  return c.getTime();
+  return dayStartMs(d);
 }
 
 export function diffDays(dateStr: string): number {
-  return Math.round((new Date(dateStr).getTime() - dayStart(new Date())) / (1000 * 60 * 60 * 24));
+  const target = parseDateOnly(dateStr);
+  if (!target) return 0;
+  return Math.round((dayStartMs(target) - dayStartMs(new Date())) / (1000 * 60 * 60 * 24));
 }
 
 /** 归一化日期：gray-matter 会把未加引号的 YAML 日期解析成 Date 对象，统一转为 YYYY-MM-DD */
 function normalizeDate(d: unknown): string | null {
-  if (!d) return null;
-  if (d instanceof Date) {
-    if (isNaN(d.getTime())) return null;
-    const p = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-  }
-  if (typeof d === 'string' || typeof d === 'number') {
-    const parsed = new Date(d);
-    if (isNaN(parsed.getTime())) return null;
-    if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0, 10);
-    return parsed.toISOString().slice(0, 10);
-  }
-  return null;
+  return normalizeDateValue(d);
 }
 
 function push(
@@ -63,17 +52,19 @@ function push(
   type: string,
   title: string,
   date: unknown
-) {
+): DatedItem | null {
   const normalized = normalizeDate(date);
-  if (!normalized) return;
-  out.push({
+  if (!normalized) return null;
+  const item: DatedItem = {
     id,
     type,
     title,
     kind,
     date: normalized,
     href: `${HREFS[type] || '/entities'}/${id}`,
-  });
+  };
+  out.push(item);
+  return item;
 }
 
 /**
@@ -90,8 +81,8 @@ export function collectDatedItems(): DatedItem[] {
   for (const t of listEntities('task' as EntityType)) {
     const status = String(t.frontmatter.status || 'todo');
     if (status === 'done' || status === 'archived') continue;
-    push(out, 'task', t.id, 'task', t.frontmatter.title, t.frontmatter.due_date as string | undefined);
-    out[out.length - 1].task_status = status;
+    const item = push(out, 'task', t.id, 'task', t.frontmatter.title, t.frontmatter.due_date as string | undefined);
+    if (item) item.task_status = status;
   }
 
   for (const d of listEntities('decision' as EntityType)) {

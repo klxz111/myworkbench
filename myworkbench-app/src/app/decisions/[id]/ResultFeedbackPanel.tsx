@@ -30,6 +30,8 @@ interface ResultFeedbackPanelProps {
   actualResult?: string;
   beliefUpdate?: string;
   verdict?: string;
+  /** 提交成功后由父组件重新拉取决策（router.refresh 不会触发 client useEffect） */
+  onRecorded?: () => void;
 }
 
 export function ResultFeedbackPanel({
@@ -38,6 +40,7 @@ export function ResultFeedbackPanel({
   actualResult,
   beliefUpdate,
   verdict,
+  onRecorded,
 }: ResultFeedbackPanelProps) {
   const router = useRouter();
   const [open, setOpen] = useState(!actualResult);
@@ -131,6 +134,7 @@ export function ResultFeedbackPanel({
       }
       setMessage(parts.join('，'));
       setOpen(false);
+      onRecorded?.();
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : '记录反馈失败');

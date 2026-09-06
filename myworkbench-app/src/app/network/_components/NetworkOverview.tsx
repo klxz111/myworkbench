@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { entityHref } from '@/lib/entity-paths';
 
 interface Entity {
   id: string;
@@ -145,7 +146,7 @@ export function NetworkOverview() {
                 </span>
                 <span className="text-xs text-gray-400">→</span>
                 <Link
-                  href={`/${rel.type}/${rel.slug || rel.to_id}`}
+                  href={entityHref(rel.type, rel.slug || rel.to_id)}
                   className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   {rel.type}/{rel.slug || rel.to_id}

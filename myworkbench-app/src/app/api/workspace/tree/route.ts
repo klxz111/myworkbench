@@ -2,20 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-
-const WORKSPACE_ROOT = path.join(process.cwd(), '..', 'workspace');
-
-function getWorkspaceRoot(): string {
-  return process.env.MYWORKBENCH_WORKSPACE || WORKSPACE_ROOT;
-}
-
-function safeJoin(root: string, rel: string): string {
-  const resolved = path.resolve(root, rel);
-  if (!resolved.startsWith(root)) {
-    throw new Error('路径超出工作区范围');
-  }
-  return resolved;
-}
+import { getWorkspaceRoot, safeJoin } from '@/lib/workspace-path';
 
 interface TreeNode {
   name: string;

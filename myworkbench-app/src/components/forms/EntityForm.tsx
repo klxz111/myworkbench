@@ -56,7 +56,11 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
 
     try {
       const isEdit = !!initialData?.id;
-      const generatedSlug = formData.id || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      let generatedSlug = formData.id || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      // 纯中文等标题无法生成 ASCII slug 时回退到时间戳 id，否则创建请求必然被拒
+      if (!generatedSlug) {
+        generatedSlug = `${type}-${Date.now().toString(36)}`;
+      }
       const url = isEdit ? `/api/entities/${type}/${initialData.id}` : `/api/entities/${type}`;
       const method = isEdit ? 'PUT' : 'POST';
 

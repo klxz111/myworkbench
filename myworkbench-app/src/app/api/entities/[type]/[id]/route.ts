@@ -5,13 +5,20 @@ import {
   writeEntity,
   moveEntityToTrash,
   listEntities,
-  computeContentHash,
+  isKnownEntityType,
+  isValidSlug,
   EntityType,
   ENTITY_DIRS,
 } from '@/lib/markdown';
-import { syncMarkdownToSqlite } from '@/lib/sync';
+import { syncMarkdownToSqlite, buildRelations, stableHash } from '@/lib/sync';
 
 export const runtime = 'nodejs';
+
+function validateParams(type: string, id: string): string | null {
+  if (!isKnownEntityType(type)) return 'Unknown entity type';
+  if (!isValidSlug(id)) return 'Invalid entity id';
+  return null;
+}
 
 export async function GET(
   request: NextRequest,
@@ -19,38 +26,23 @@ export async function GET(
 ) {
   try {
     const { type, id } = await params;
+    const invalid = validateParams(type, id);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 404 });
+    }
     const entity = readEntity(type as EntityType, id);
     if (!entity) {
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
     }
 
+    // 展开完整 frontmatter：各类型详情页读取各自字段，白名单会导致新字段永远渲染为空
     return NextResponse.json({
-      id: entity.frontmatter.id,
+      ...entity.frontmatter,
+      id: entity.frontmatter.id ?? entity.id,
       type: entity.type,
       slug: entity.slug,
-      title: entity.frontmatter.title,
-      status: entity.frontmatter.status,
-      tags: entity.frontmatter.tags || [],
-      created_at: entity.frontmatter.created_at,
-      updated_at: entity.frontmatter.updated_at,
       content: entity.content,
       frontmatter: entity.frontmatter,
-      context: entity.frontmatter.context,
-      question: entity.frontmatter.question,
-      options: entity.frontmatter.options,
-      evidence: entity.frontmatter.evidence,
-      current_belief: entity.frontmatter.current_belief,
-      decision: entity.frontmatter.decision,
-      expected_outcome: entity.frontmatter.expected_outcome,
-      gate: entity.frontmatter.gate,
-      actual_result: entity.frontmatter.actual_result,
-      belief_update: entity.frontmatter.belief_update,
-      linked_events: entity.frontmatter.linked_events,
-      event_date: entity.frontmatter.event_date,
-      location: entity.frontmatter.location,
-      event_type: entity.frontmatter.event_type,
-      linked_strategies: entity.frontmatter.linked_strategies,
-      linked_decisions: entity.frontmatter.linked_decisions,
     });
   } catch (error) {
     console.error('Error fetching entity:', error);
@@ -64,11 +56,18 @@ export async function PUT(
 ) {
   try {
     const { type, id } = await params;
+    const invalid = validateParams(type, id);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 404 });
+    }
     const body = await request.json();
 
     const existing = readEntity(type as EntityType, id);
     if (!existing) {
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+    }
+    if (!body.data || typeof body.data !== 'object') {
+      return NextResponse.json({ error: 'Missing required field: data' }, { status: 400 });
     }
 
     const updatedData = {
@@ -77,39 +76,36 @@ export async function PUT(
       updated_at: new Date().toISOString(),
     };
 
-    const entity = writeEntity(type as EntityType, id, updatedData, body.content || existing.content);
+    // typeof 判断而非真值判断：允许把正文清空为 ''
+    const content = typeof body.content === 'string' ? body.content : existing.content;
 
+    const entity = writeEntity(type as EntityType, id, updatedData, content);
+
+    // 与 syncMarkdownToSqlite/createEntity 相同的 hash 公式，避免下次同步误判为已变更
+    const contentHash = stableHash(entity.frontmatter, entity.content);
     const db = initDb();
-    const contentHash = computeContentHash(JSON.stringify(updatedData) + entity.content);
     db.prepare(
       `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, updated_at = datetime('now')
        WHERE id = ?`
     ).run(
-      updatedData.title,
-      updatedData.status || 'active',
-      JSON.stringify(updatedData.tags || []),
+      entity.frontmatter.title,
+      entity.frontmatter.status || 'active',
+      JSON.stringify(entity.frontmatter.tags || []),
       contentHash,
       entity.content,
       entity.id
     );
 
+    // linked_*/relations 可能被本次编辑修改，重建关系表供 /api/graph、/api/relations、backlinks 使用
+    buildRelations();
+
     return NextResponse.json({
-      id: entity.frontmatter.id,
-      title: entity.frontmatter.title,
-      status: entity.frontmatter.status,
-      tags: entity.frontmatter.tags || [],
-      updated_at: entity.frontmatter.updated_at,
+      ...entity.frontmatter,
+      id: entity.frontmatter.id ?? entity.id,
+      type: entity.type,
+      slug: entity.slug,
       content: entity.content,
-      context: entity.frontmatter.context,
-      question: entity.frontmatter.question,
-      options: entity.frontmatter.options,
-      evidence: entity.frontmatter.evidence,
-      current_belief: entity.frontmatter.current_belief,
-      decision: entity.frontmatter.decision,
-      expected_outcome: entity.frontmatter.expected_outcome,
-      gate: entity.frontmatter.gate,
-      actual_result: entity.frontmatter.actual_result,
-      belief_update: entity.frontmatter.belief_update,
+      frontmatter: entity.frontmatter,
     });
   } catch (error) {
     console.error('Error updating entity:', error);
@@ -123,6 +119,10 @@ export async function DELETE(
 ) {
   try {
     const { type, id } = await params;
+    const invalid = validateParams(type, id);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 404 });
+    }
 
     const trashName = moveEntityToTrash(type as EntityType, id);
     if (!trashName) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readEntity, writeEntity, listEntities, EntityType } from '@/lib/markdown';
+import fs from 'fs';
+import { readEntity, writeEntity, listEntities, resolveEntityPath, isValidSlug, EntityType } from '@/lib/markdown';
 import { createEntity, syncMarkdownToSqlite } from '@/lib/sync';
 
 export const runtime = 'nodejs';
@@ -36,13 +37,18 @@ interface FeedbackBody {
 }
 
 function nextEvidenceSlug(): string {
-  const existing = listEntities('evidence' as EntityType);
   let max = 0;
-  for (const e of existing) {
+  for (const e of listEntities('evidence' as EntityType)) {
     const m = e.slug.match(/^evidence-(\d+)$/);
     if (m) max = Math.max(max, parseInt(m[1], 10));
   }
-  return `evidence-${String(max + 1).padStart(4, '0')}`;
+  // 并发创建时 max+1 可能撞上已存在文件，跳到下一个空位
+  let slug = `evidence-${String(max + 1).padStart(4, '0')}`;
+  while (fs.existsSync(resolveEntityPath('evidence' as EntityType, slug))) {
+    max++;
+    slug = `evidence-${String(max + 1).padStart(4, '0')}`;
+  }
+  return slug;
 }
 
 function appendBeliefLog(content: string, entry: string): string {
@@ -62,8 +68,9 @@ export async function POST(
     const { id } = await params;
     const body = (await request.json()) as FeedbackBody;
 
-    const verdict = body.verdict;
-    if (!verdict || !(verdict in VERDICT_LABELS)) {
+    const verdict = body.verdict as Verdict;
+    // hasOwnProperty 而非 in：'constructor' 等原型链 key 会绕过白名单
+    if (!verdict || !Object.prototype.hasOwnProperty.call(VERDICT_LABELS, verdict)) {
       return NextResponse.json({ error: '缺少或非法的 verdict' }, { status: 400 });
     }
     if (!body.actual_result || !body.actual_result.trim()) {

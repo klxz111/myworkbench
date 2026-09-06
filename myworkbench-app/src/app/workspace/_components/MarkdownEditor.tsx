@@ -11,6 +11,7 @@ import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } 
 import { bracketMatching } from '@codemirror/language';
 import { MarkdownPreview } from '@/components/MarkdownPreview';
 import { MarkdownToolbar } from './MarkdownToolbar';
+import { useIsDarkTheme } from '@/lib/theme';
 
 interface MarkdownEditorProps {
   filePath: string;
@@ -27,6 +28,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
   const [frontmatterOpen, setFrontmatterOpen] = useState(true);
+  const isDark = useIsDarkTheme();
 
   const title = (frontmatter.title as string) || filePath.replace(/\.md$/, '');
   const tagsInput = Array.isArray(frontmatter.tags) ? (frontmatter.tags as unknown as string[]).join(', ') : (frontmatter.tags as string) || '';
@@ -38,7 +40,8 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
         const res = await fetch(`/api/workspace/file?path=${encodeURIComponent(filePath)}`);
         if (!res.ok) throw new Error('Failed to load file');
         const data = await res.json();
-        setBody(data.body || data.content || '');
+        // body 为空字符串时不能回退到整份原文（含 frontmatter），否则自动保存会把 frontmatter 烤进正文
+        setBody(data.body ?? '');
         setFrontmatter(data.frontmatter || {});
         setHasChanges(false);
         setLastSaved(null);
@@ -53,9 +56,6 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
 
   useEffect(() => {
     if (!editorRef.current || loading) return;
-
-    // 主题感知：暗色用 oneDark，浅色用默认高亮（初始化时判定）
-    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
     const state = EditorState.create({
       doc: body,
@@ -106,7 +106,8 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
       view.destroy();
       setEditorView(null);
     };
-  }, [loading]);
+    // isDark 变化时重建编辑器以切换 CodeMirror 主题（文档内容来自 React state，不会丢失）
+  }, [loading, isDark]);
 
   useEffect(() => {
     if (!hasChanges) return;

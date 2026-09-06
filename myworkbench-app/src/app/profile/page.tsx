@@ -17,7 +17,7 @@ export default function ProfilePage() {
           </p>
         </div>
         <Link
-          href="/profile/new"
+          href="/entities/profile/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           新建个人档案

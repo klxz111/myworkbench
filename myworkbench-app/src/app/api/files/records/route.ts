@@ -1,22 +1,8 @@
 import { NextResponse } from 'next/server';
-import { listEntities, EntityType, EntityFile } from '@/lib/markdown';
+import { listEntities, ENTITY_DIRS, EntityType, EntityFile } from '@/lib/markdown';
 
-const ALL_TYPES: EntityType[] = [
-  'strategy',
-  'research',
-  'decision',
-  'project',
-  'experiment',
-  'person',
-  'evidence',
-  'belief',
-  'opportunity',
-  'radar',
-  'capital',
-  'profile',
-  'event',
-  'organization',
-];
+// 直接从 ENTITY_DIRS 派生，新增实体类型不会再被遗漏
+const ALL_TYPES: EntityType[] = Object.keys(ENTITY_DIRS) as EntityType[];
 
 export async function GET() {
   try {

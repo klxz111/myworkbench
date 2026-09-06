@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getStoredTheme, toggleTheme, effectiveTheme, type ThemeMode } from '@/lib/theme';
+import { getStoredTheme, toggleTheme, effectiveTheme, useIsDarkTheme, type ThemeMode } from '@/lib/theme';
 
 export function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>('system');
@@ -15,7 +15,7 @@ export function ThemeToggle() {
     setMode(next);
   };
 
-  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
+  const isDark = useIsDarkTheme();
 
   return (
     <button

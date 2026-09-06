@@ -21,7 +21,7 @@ export function StrategyClient() {
       try {
         const res = await fetch('/api/entities/strategy');
         const data = await res.json();
-        setStrategies(data);
+        setStrategies(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching strategies:', error);
       } finally {
@@ -106,7 +106,7 @@ export function StrategyClient() {
                   </Link>
                   <div className="flex gap-2 ml-4">
                     <Link
-                      href={`/strategy/${strategy.id}/edit`}
+                      href={`/entities/strategy/${strategy.id}/edit`}
                       className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                       编辑

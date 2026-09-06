@@ -30,11 +30,22 @@ export function getDb(): Database.Database {
 export function initDb() {
   const db = getDb();
 
+  // 旧库迁移：slug 曾是全局 UNIQUE，跨类型同名文件（tasks/x.md 与 projects/x.md）会让整个同步事务回滚。
+  // Markdown 是数据源、SQLite 仅是缓存，直接重建表，随后由 syncMarkdownToSqlite 全量回填。
+  const tableSql = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'entities'`)
+    .get() as { sql: string } | undefined;
+  if (tableSql && !/UNIQUE\s*\(\s*type\s*,\s*slug/i.test(tableSql.sql.replace(/\s+/g, ' '))) {
+    db.exec(`DROP TABLE IF EXISTS entities_fts`);
+    db.exec(`DROP TABLE IF EXISTS entities`);
+    db.exec(`DROP TABLE IF EXISTS relations`);
+  }
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS entities (
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL,
-      slug TEXT NOT NULL UNIQUE,
+      slug TEXT NOT NULL,
       title TEXT NOT NULL,
       status TEXT DEFAULT 'active',
       tags TEXT DEFAULT '[]',
@@ -42,7 +53,8 @@ export function initDb() {
       updated_at TEXT DEFAULT (datetime('now')),
       file_path TEXT NOT NULL UNIQUE,
       content_hash TEXT,
-      content TEXT
+      content TEXT,
+      UNIQUE(type, slug)
     )
   `);
 

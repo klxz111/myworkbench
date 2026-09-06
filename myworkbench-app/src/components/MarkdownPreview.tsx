@@ -19,16 +19,21 @@ interface MarkdownPreviewProps {
   content: string;
 }
 
+/** marked v4+ 不再消毒 HTML：先转义原生 HTML 标签，实体/笔记中的 <script>、<img onerror> 才不会注入 DOM */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   const [html, setHtml] = useState('');
 
   useEffect(() => {
     async function render() {
       try {
-        const result = await marked.parse(content || '');
+        const result = await marked.parse(escapeHtml(content || ''));
         setHtml(typeof result === 'string' ? result : String(result));
       } catch {
-        setHtml(content || '');
+        setHtml(escapeHtml(content || ''));
       }
     }
     render();

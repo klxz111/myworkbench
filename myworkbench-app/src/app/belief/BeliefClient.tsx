@@ -27,7 +27,7 @@ export function BeliefClient() {
       try {
         const res = await fetch('/api/entities/belief');
         const data = await res.json();
-        setBeliefs(data);
+        setBeliefs(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching beliefs:', error);
       } finally {

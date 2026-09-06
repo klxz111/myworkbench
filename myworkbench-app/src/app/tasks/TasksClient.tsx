@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useListControls, ListToolbar } from '@/components/ListControls';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface Task {
   id: string;
@@ -29,12 +30,13 @@ const SECTION_META: { status: string; label: string; accent: string }[] = [
 
 function dueMeta(task: Task): { text: string; overdue: boolean } | null {
   if (!task.due_date) return null;
+  const due = parseDateOnly(task.due_date);
+  if (!due) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(task.due_date);
   due.setHours(0, 0, 0, 0);
   const diff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  const dateStr = new Date(task.due_date).toLocaleDateString('zh-CN');
+  const dateStr = due.toLocaleDateString('zh-CN');
   if (diff < 0) return { text: `逾期 ${Math.abs(diff)} 天（${dateStr}）`, overdue: true };
   if (diff === 0) return { text: '今天到期', overdue: false };
   return { text: `${diff} 天后（${dateStr}）`, overdue: false };

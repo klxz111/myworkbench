@@ -1,6 +1,7 @@
 'use client';
 
 import { TYPE_SPECIFIC_FIELDS, FieldDef } from '@/lib/fields';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface EntityFieldsDisplayProps {
   entityType: string;
@@ -9,9 +10,9 @@ interface EntityFieldsDisplayProps {
 
 function formatValue(value: unknown, type?: FieldDef['type']): string {
   if (value === undefined || value === null || value === '') return '';
-  if (type === 'date' && (typeof value === 'string' || typeof value === 'number')) {
-    const d = new Date(value);
-    if (!isNaN(d.getTime())) return d.toLocaleDateString('zh-CN');
+  if (type === 'date' && typeof value === 'string') {
+    const d = parseDateOnly(value);
+    if (d) return d.toLocaleDateString('zh-CN');
   }
   if (Array.isArray(value)) {
     return value.map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ');

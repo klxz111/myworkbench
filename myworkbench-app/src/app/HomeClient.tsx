@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DataManagement } from '@/components/DataManagement';
+import { entityHref } from '@/lib/entity-paths';
 
 interface DashboardItem {
   id: string;
@@ -55,6 +56,9 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; do
 const STATUS_STYLES: Record<string, { label: string; color: string; bg: string; border: string }> = {
   active: { label: '活跃', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-800' },
   draft: { label: '草稿', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-800' },
+  todo: { label: '待办', color: 'text-blue-700 dark:text-blue-300', bg: 'bg-blue-50 dark:bg-blue-900/30', border: 'border-blue-200 dark:border-blue-800' },
+  doing: { label: '进行中', color: 'text-indigo-700 dark:text-indigo-300', bg: 'bg-indigo-50 dark:bg-indigo-900/30', border: 'border-indigo-200 dark:border-indigo-800' },
+  done: { label: '已完成', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-200 dark:border-emerald-800' },
   archived: { label: '已归档', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-gray-200 dark:border-gray-700' },
 };
 
@@ -70,21 +74,7 @@ function getTypeConfig(type: string) {
 }
 
 function getTypeHref(type: string, id: string): string {
-  const map: Record<string, string> = {
-    strategy: '/strategy',
-    decision: '/decisions',
-    research: '/research',
-    evidence: '/evidence',
-    project: '/projects',
-    experiment: '/experiment',
-    belief: '/belief',
-    person: '/people',
-    opportunity: '/opportunity',
-    radar: '/radar',
-    capital: '/capital',
-    profile: '/profile',
-  };
-  return `${map[type] || '/'}/${id}`;
+  return entityHref(type, id);
 }
 
 export function HomeClient() {

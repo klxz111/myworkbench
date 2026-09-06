@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useListControls, ListToolbar } from '@/components/ListControls';
+import { parseDateOnly } from '@/lib/date-utils';
 
 interface Entity {
   id: string;
@@ -23,9 +24,14 @@ function getGateStatus(gate?: { review_date?: string } | null): { status: GateSt
   if (!gate?.review_date) {
     return { status: 'no_review_date', label: '未设置审核日期', color: 'text-gray-500' };
   }
-  const now = new Date();
-  const reviewDate = new Date(gate.review_date);
-  const diffDays = Math.ceil((reviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const reviewDate = parseDateOnly(gate.review_date);
+  if (!reviewDate) {
+    return { status: 'no_review_date', label: '未设置审核日期', color: 'text-gray-500' };
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  reviewDate.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((reviewDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays < 0) {
     return { status: 'overdue', label: `已逾期 ${Math.abs(diffDays)} 天`, color: 'text-red-600 dark:text-red-400' };
   }
@@ -44,7 +50,7 @@ export function DecisionsClient() {
       try {
         const res = await fetch('/api/entities/decision');
         const data = await res.json();
-        setDecisions(data);
+        setDecisions(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching decisions:', error);
       } finally {
