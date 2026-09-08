@@ -14,6 +14,7 @@ import {
   Line,
   Legend,
 } from 'recharts';
+import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { CAPITAL_DIMENSIONS } from '@/lib/fields';
 
 interface EntityCount {
@@ -39,41 +40,6 @@ const VERDICT_COLORS: Record<string, string> = {
   被推翻: '#ef4444',
   待定: '#9ca3af',
 };
-
-function Heatmap({ activity }: { activity: { date: string; count: number }[] }) {
-  // 按周分组（7 列一组从周一开始）
-  const max = Math.max(1, ...activity.map((a) => a.count));
-  const cells = activity.map((a) => {
-    const level = a.count === 0 ? 0 : Math.min(4, Math.ceil((a.count / max) * 4));
-    return { ...a, level };
-  });
-  const weeks: typeof cells[] = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-
-  const levelClass = [
-    'bg-gray-100 dark:bg-gray-700',
-    'bg-blue-100 dark:bg-blue-900',
-    'bg-blue-300 dark:bg-blue-700',
-    'bg-blue-500 dark:bg-blue-500',
-    'bg-blue-700 dark:bg-blue-300',
-  ];
-
-  return (
-    <div className="flex gap-[3px] overflow-x-auto pb-1">
-      {weeks.map((week, wi) => (
-        <div key={wi} className="flex flex-col gap-[3px]">
-          {week.map((cell) => (
-            <div
-              key={cell.date}
-              title={`${cell.date}：${cell.count} 次更新`}
-              className={`h-3 w-3 rounded-sm ${levelClass[cell.level]}`}
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function StatsClient() {
   const [data, setData] = useState<StatsData | null>(null);
@@ -118,7 +84,7 @@ export function StatsClient() {
         </div>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {data.entity_counts.map((e) => (
-            <Link key={e.type} href={e.href} className="text-blue-600 dark:text-blue-400 hover:underline">
+            <Link key={e.type} href={e.href} className="text-accent-600 dark:text-accent-400 hover:underline">
               {e.label}（{e.count}）
             </Link>
           ))}
@@ -207,7 +173,7 @@ export function StatsClient() {
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
           近 12 周活动
         </h2>
-        <Heatmap activity={data.activity} />
+        <ActivityHeatmap activity={data.activity} weeks={12} />
         <p className="mt-2 text-xs text-gray-400">按实体更新日期统计</p>
       </section>
     </div>

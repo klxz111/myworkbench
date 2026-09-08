@@ -139,7 +139,7 @@ export function syncMarkdownToSqlite(): SyncResult {
           // 文件路径/类型/slug 变化（重命名、移动目录）也必须写回，
           // 否则下方按 file_path 的删除清判会把实体从索引里误删
           db.prepare(
-            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, extra = ?, file_stat = ?, file_path = ?, type = ?, slug = ?, updated_at = datetime('now')
+            `UPDATE entities SET title = ?, status = ?, tags = ?, content_hash = ?, content = ?, extra = ?, file_stat = ?, file_path = ?, type = ?, slug = ?, updated_at = COALESCE(?, datetime('now'))
              WHERE id = ?`
           ).run(
             entity.frontmatter.title,
@@ -152,6 +152,7 @@ export function syncMarkdownToSqlite(): SyncResult {
             entity.filePath,
             entity.type,
             entity.slug,
+            entity.frontmatter.updated_at || null,
             entity.id
           );
           result.updated++;

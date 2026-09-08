@@ -13,54 +13,61 @@ import { getStartPage } from '@/lib/prefs';
  * 分组顺序即日常工作流：执行 → 思考 → 资产 → 记录 → 回顾。
  * 折叠状态持久化在 localStorage（mwbench_nav_groups）；路由变化时自动展开当前组。
  */
-const NAV_GROUPS: { label: string; items: { href: string; label: string }[] }[] = [
+type NavChild = { href: string; label: string };
+type NavItem = { label: string; href?: string; children?: NavChild[] };
+type NavGroup = { label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
   {
     label: '执行',
     items: [
-      { href: '/today', label: '今日' },
-      { href: '/tasks', label: '任务' },
-      { href: '/calendar', label: '日历' },
-      { href: '/board', label: '看板' },
+      { label: '今日', href: '/today' },
+      {
+        label: '更多视图',
+        children: [
+          { label: '任务', href: '/tasks' },
+          { label: '日历', href: '/calendar' },
+          { label: '看板', href: '/board' },
+        ],
+      },
     ],
   },
   {
     label: '思考',
     items: [
-      { href: '/decisions', label: '决策' },
-      { href: '/evidence', label: '证据' },
-      { href: '/belief', label: '信念' },
-      { href: '/ideas', label: '想法看板' },
-      { href: '/research', label: '研究' },
-      { href: '/experiment', label: '实验' },
-      { href: '/knowledge', label: '知识树' },
+      { label: '决策', href: '/decisions' },
+      { label: '证据', href: '/evidence' },
+      { label: '信念', href: '/belief' },
+      { label: '想法看板', href: '/ideas' },
+      { label: '研究', href: '/research' },
+      { label: '实验', href: '/experiment' },
     ],
   },
   {
     label: '资产',
     items: [
-      { href: '/strategy', label: '策略' },
-      { href: '/opportunity', label: '机会' },
-      { href: '/people', label: '人脉' },
-      { href: '/organizations', label: '组织' },
-      { href: '/capital', label: '资本' },
-      { href: '/radar', label: '雷达' },
-      { href: '/profile', label: '个人档案' },
+      { label: '策略', href: '/strategy' },
+      { label: '机会', href: '/opportunity' },
+      { label: '人脉', href: '/people' },
+      { label: '组织', href: '/organizations' },
+      { label: '资本', href: '/capital' },
+      { label: '雷达', href: '/radar' },
+      { label: '个人档案', href: '/profile' },
     ],
   },
   {
     label: '记录',
     items: [
-      { href: '/daily', label: '每日笔记' },
-      { href: '/workspace', label: '工作台' },
-      { href: '/rss', label: 'RSS 订阅' },
+      { label: '工作台', href: '/workspace' },
+      { label: 'RSS 订阅', href: '/rss' },
     ],
   },
   {
     label: '回顾',
     items: [
-      { href: '/review', label: '每周回顾' },
-      { href: '/stats', label: '统计' },
-      { href: '/graph', label: '图谱' },
+      { label: '每周回顾', href: '/review' },
+      { label: '统计', href: '/stats' },
+      { label: '图谱', href: '/graph' },
     ],
   },
 ];
@@ -75,9 +82,18 @@ function isActive(pathname: string | null, href: string): boolean {
   return href === '/' ? pathname === '/' : Boolean(pathname && (pathname === href || pathname.startsWith(href + '/')));
 }
 
+function itemHrefs(item: NavItem): string[] {
+  if (item.children) return item.children.map((c) => c.href);
+  return item.href ? [item.href] : [];
+}
+
+function isItemActive(pathname: string | null, item: NavItem): boolean {
+  return itemHrefs(item).some((href) => isActive(pathname, href));
+}
+
 function groupOfPath(pathname: string | null): string | null {
   for (const group of NAV_GROUPS) {
-    if (group.items.some((item) => isActive(pathname, item.href))) return group.label;
+    if (group.items.some((item) => isItemActive(pathname, item))) return group.label;
   }
   return null;
 }
@@ -103,18 +119,20 @@ interface NavGroupsProps {
 }
 
 function NavGroups({ pathname, expanded, onToggle, onNavigate }: NavGroupsProps) {
+  const [subExpanded, setSubExpanded] = useState<Record<string, boolean>>({});
+
   return (
     <nav className="flex-1 overflow-y-auto scroll-thin px-3 py-3 space-y-3">
       {NAV_GROUPS.map((group) => {
         const isOpen = Boolean(expanded[group.label]);
-        const hasActive = group.items.some((item) => isActive(pathname, item.href));
+        const hasActive = group.items.some((item) => isItemActive(pathname, item));
         return (
           <div key={group.label}>
             <button
               onClick={() => onToggle(group.label)}
               className={`flex w-full items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-semibold uppercase tracking-wider transition-colors ${
                 hasActive
-                  ? 'text-blue-600 dark:text-blue-400'
+                  ? 'text-accent-600 dark:text-accent-400'
                   : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
               }`}
               aria-expanded={isOpen}
@@ -125,18 +143,71 @@ function NavGroups({ pathname, expanded, onToggle, onNavigate }: NavGroupsProps)
             {isOpen && (
               <ul className="mt-0.5 space-y-0.5">
                 {group.items.map((item) => {
-                  const active = isActive(pathname, item.href);
+                  if (item.children) {
+                    const subKey = `${group.label}:${item.label}`;
+                    const subOpen = Boolean(subExpanded[subKey]);
+                    const subHasActive = item.children.some((c) => isActive(pathname, c.href));
+                    return (
+                      <li key={item.label}>
+                        <button
+                          onClick={() =>
+                            setSubExpanded((prev) => ({ ...prev, [subKey]: !prev[subKey] }))
+                          }
+                          className={`flex w-full items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            subHasActive
+                              ? 'text-accent-700 dark:text-accent-300 font-medium'
+                              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <Chevron open={subOpen} />
+                        </button>
+                        {subOpen && (
+                          <ul className="mt-0.5 space-y-0.5">
+                            {item.children.map((child) => {
+                              const active = isActive(pathname, child.href);
+                              return (
+                                <li key={child.href} className="relative">
+                                  {active && (
+                                    <span
+                                      className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-full bg-accent-500"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                  <Link
+                                    href={child.href}
+                                    onClick={onNavigate}
+                                    className={`block pl-7 pr-3 py-1.5 rounded-md text-sm transition-colors ${
+                                      active
+                                        ? 'bg-accent-50 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 font-medium'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
+                                  >
+                                    {child.label}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  }
+                  const active = isActive(pathname, item.href!);
                   return (
                     <li key={item.href} className="relative">
                       {active && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-full bg-blue-500" aria-hidden="true" />
+                        <span
+                          className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-1 rounded-full bg-accent-500"
+                          aria-hidden="true"
+                        />
                       )}
                       <Link
-                        href={item.href}
+                        href={item.href!}
                         onClick={onNavigate}
                         className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${
                           active
-                            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
+                            ? 'bg-accent-50 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 font-medium'
                             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
                         }`}
                       >
@@ -159,7 +230,7 @@ function SidebarTools({ onNavigate }: { onNavigate?: () => void }) {
     <>
       <button
         onClick={openPalette}
-        className="flex w-full items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+        className="flex w-full items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm text-gray-500 dark:text-gray-400 hover:border-accent-400 dark:hover:border-accent-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -215,7 +286,7 @@ function Brand() {
       }}
       className="flex items-center gap-2.5 px-4 h-16 shrink-0 group"
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold shadow-sm group-hover:shadow transition-shadow">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-600 text-white text-sm font-bold shadow-sm group-hover:shadow transition-shadow">
         M
       </span>
       <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">myworkbench</span>
@@ -278,7 +349,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
         <div className="flex-1 min-w-0 flex flex-col min-h-screen">
           <header className="md:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur">
             <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">M</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-600 text-white text-xs font-bold">M</span>
               <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">myworkbench</span>
             </Link>
             <div className="flex items-center gap-1">

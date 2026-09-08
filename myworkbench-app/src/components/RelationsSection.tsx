@@ -161,7 +161,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
           </h3>
           <button
             onClick={() => setShowAddDialog(true)}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-3 py-1 text-sm bg-accent-600 text-white rounded hover:bg-accent-700"
           >
             + 添加关系
           </button>
@@ -179,7 +179,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
         </h3>
         <button
           onClick={() => setShowAddDialog(true)}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-3 py-1 text-sm bg-accent-600 text-white rounded hover:bg-accent-700"
         >
           + 添加关系
         </button>
@@ -190,17 +190,17 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
           return (
             <div
               key={`${rel.to_id}-${rel.relation}`}
-              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1 bg-accent-50 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 rounded-full text-sm hover:bg-accent-100 dark:hover:bg-accent-900/50 transition-colors"
             >
               <Link href={href} className="flex items-center gap-1">
-                <span className="text-xs text-blue-500 dark:text-blue-400 font-medium uppercase">
+                <span className="text-xs text-accent-500 dark:text-accent-400 font-medium uppercase">
                   {rel.relation}
                 </span>
                 <span>{rel.title}</span>
               </Link>
               <button
                 onClick={() => handleDeleteRelation(rel.to_id, rel.relation)}
-                className="ml-1 text-blue-400 hover:text-red-600 dark:hover:text-red-400"
+                className="ml-1 text-accent-400 hover:text-red-600 dark:hover:text-red-400"
                 title="删除关系"
               >
                 ×
@@ -220,7 +220,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
               <Link
                 key={`${rel.from_id}-${rel.relation}`}
                 href={entityHref(rel.type, rel.from_id)}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 rounded-full text-sm border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 dark:bg-gray-900/40 text-gray-700 dark:text-gray-300 rounded-full text-sm border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors"
               >
                 <span className="text-xs text-gray-400 dark:text-gray-500 font-medium uppercase">
                   ← {rel.relation}
@@ -263,7 +263,7 @@ export function RelationsSection({ entityId, entityType }: RelationsSectionProps
                           setSearchQuery(result.title);
                           setSearchResults([]);
                         }}
-                        className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${selectedEntity?.slug === result.slug && selectedEntity?.type === result.type ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                        className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 ${selectedEntity?.slug === result.slug && selectedEntity?.type === result.type ? 'bg-accent-50 dark:bg-accent-900/20' : ''}`}
                       >
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{result.title}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{result.type}</div>

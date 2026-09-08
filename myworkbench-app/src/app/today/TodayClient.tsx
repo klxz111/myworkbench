@@ -143,14 +143,14 @@ export function TodayClient() {
                 {data.doing.map((t) => (
                   <li key={t.id}>
                     <Link href={t.href} className="flex items-center gap-2 px-1 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-accent-500 shrink-0" />
                       <span className="flex-1 truncate text-sm text-gray-900 dark:text-gray-200">{t.title}</span>
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
-            <Link href="/tasks" className="inline-block mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
+            <Link href="/tasks" className="inline-block mt-2 text-xs text-accent-600 dark:text-accent-400 hover:underline">
               查看全部任务 →
             </Link>
           </SectionCard>
@@ -158,7 +158,7 @@ export function TodayClient() {
           <SectionCard title="今天的事件" count={data.events_today.length}>
             <DatedItemList items={data.events_today} showDue={false} emptyText="今天没有事件记录。" />
             {data.events_this_week.length > 0 && (
-              <Link href="/calendar" className="inline-block mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">
+              <Link href="/calendar" className="inline-block mt-2 text-xs text-accent-600 dark:text-accent-400 hover:underline">
                 本周还有 {data.events_this_week.length} 个事件，查看日历 →
               </Link>
             )}

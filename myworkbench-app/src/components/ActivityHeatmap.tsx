@@ -11,9 +11,9 @@ function localDateKey(d: Date): string {
 function levelClass(count: number, max: number): string {
   if (count <= 0) return 'bg-gray-100 dark:bg-gray-800';
   const ratio = max > 0 ? count / max : 1;
-  if (ratio > 0.66) return 'bg-blue-600 dark:bg-blue-500';
-  if (ratio > 0.33) return 'bg-blue-400 dark:bg-blue-600';
-  return 'bg-blue-200 dark:bg-blue-800';
+  if (ratio > 0.66) return 'bg-accent-600 dark:bg-accent-500';
+  if (ratio > 0.33) return 'bg-accent-400 dark:bg-accent-600';
+  return 'bg-accent-200 dark:bg-accent-800';
 }
 
 export function ActivityHeatmap({ activity, weeks = 12 }: { activity: { date: string; count: number }[]; weeks?: number }) {
@@ -55,9 +55,9 @@ export function ActivityHeatmap({ activity, weeks = 12 }: { activity: { date: st
       <div className="mt-2 flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
         <span>少</span>
         <span className="h-2.5 w-2.5 rounded-[2px] bg-gray-100 dark:bg-gray-800" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-blue-200 dark:bg-blue-800" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-blue-400 dark:bg-blue-600" />
-        <span className="h-2.5 w-2.5 rounded-[2px] bg-blue-600 dark:bg-blue-500" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-accent-200 dark:bg-accent-800" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-accent-400 dark:bg-accent-600" />
+        <span className="h-2.5 w-2.5 rounded-[2px] bg-accent-600 dark:bg-accent-500" />
         <span>多</span>
       </div>
     </div>

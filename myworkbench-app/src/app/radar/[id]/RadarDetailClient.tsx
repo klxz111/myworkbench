@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { RelationsSection } from '@/components/RelationsSection';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 import { StatusTimeline } from '@/components/StatusTimeline';
 
 interface RadarDetail {
@@ -77,7 +76,7 @@ export function RadarDetailClient({ id }: { id: string }) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到雷达条目'}</p>
-        <Link href="/radar" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
+        <Link href="/radar" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">
           ← 返回雷达列表
         </Link>
       </div>
@@ -85,85 +84,26 @@ export function RadarDetailClient({ id }: { id: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {radar.title}
-            </h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              {radar.category && (
-                <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded text-xs capitalize">
-                  {radar.category.replace(/_/g, ' ')}
-                </span>
-              )}
-              {radar.signal_strength && (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  radar.signal_strength === 'high'
-                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    : radar.signal_strength === 'medium'
-                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                }`}>
-                  {radar.signal_strength} signal
-                </span>
-              )}
-              <span>创建：{new Date(radar.created_at).toLocaleDateString()}</span>
-              <span>更新：{new Date(radar.updated_at).toLocaleDateString()}</span>
-            </div>
-            {radar.tags && radar.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {radar.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link
-              href={`/entities/radar/${id}/edit`}
-              className="btn-primary"
-            >
-              编辑
-            </Link>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {deleting ? '删除中...' : '删除'}
-            </button>
-            <Link
-              href="/radar"
-              className="btn-secondary"
-            >
-              ← 返回
-            </Link>
-          </div>
-        </div>
-      </div>
-
+    <DetailShell
+      entityType="radar"
+      id={id}
+      title={radar.title}
+      status={radar.status}
+      tags={radar.tags || []}
+      created_at={radar.created_at}
+      updated_at={radar.updated_at}
+      listPath="/radar"
+      editHref={`/entities/radar/${id}/edit`}
+      onDelete={handleDelete}
+      deleting={deleting}
+      frontmatter={radar as unknown as Record<string, unknown>}
+    >
       {radar.impact && (
         <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             影响
           </h3>
           <p className="text-gray-700 dark:text-gray-300">{radar.impact}</p>
-        </section>
-      )}
-
-      {radar.content && (
-        <section className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            详情
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{radar.content}</p>
         </section>
       )}
 
@@ -194,9 +134,6 @@ export function RadarDetailClient({ id }: { id: string }) {
       )}
 
       <StatusTimeline createdAt={radar.created_at} updatedAt={radar.updated_at} status={radar.status} />
-
-      <RelationsSection entityId={id} entityType="radar" />
-      <BacklinksSection entityType="radar" entityId={id} />
-    </div>
+    </DetailShell>
   );
 }

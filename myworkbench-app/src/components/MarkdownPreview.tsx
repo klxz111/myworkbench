@@ -5,6 +5,7 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 import katex from 'katex';
+import DOMPurify from 'dompurify';
 
 const marked = new Marked(
   markedHighlight({
@@ -73,27 +74,50 @@ marked.use({ extensions: [blockMath, inlineMath] });
 
 interface MarkdownPreviewProps {
   content: string;
+  resolveWikiLinks?: boolean;
 }
 
-/** marked v4+ 不再消毒 HTML：先转义原生 HTML 标签，实体/笔记中的 <script>、<img onerror> 才不会注入 DOM */
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-export function MarkdownPreview({ content }: MarkdownPreviewProps) {
+export function MarkdownPreview({ content, resolveWikiLinks }: MarkdownPreviewProps) {
   const [html, setHtml] = useState('');
+  const [resolved, setResolved] = useState(content);
+
+  useEffect(() => {
+    if (!resolveWikiLinks || !/\[\[/.test(content)) {
+      setResolved(content);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/wiki/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setResolved(data.markdown || content);
+        } else {
+          setResolved(content);
+        }
+      } catch {
+        setResolved(content);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [content, resolveWikiLinks]);
 
   useEffect(() => {
     async function render() {
       try {
-        const result = await marked.parse(escapeHtml(content || ''));
-        setHtml(typeof result === 'string' ? result : String(result));
+        const raw = await marked.parse(resolved || '');
+        const result = typeof raw === 'string' ? raw : String(raw);
+        setHtml(DOMPurify.sanitize(result));
       } catch {
-        setHtml(escapeHtml(content || ''));
+        setHtml(DOMPurify.sanitize(resolved || ''));
       }
     }
     render();
-  }, [content]);
+  }, [resolved]);
 
   return (
     <div

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NOTIFY_ENABLED_KEY } from '@/lib/prefs';
+import { getVapidPublicKey, encodeVapidKey } from '@/lib/push-client';
 
 interface NotificationItem {
   id: string;
@@ -51,7 +52,9 @@ export function NotificationBell({ placement = 'right' }: { placement?: 'right' 
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [permission, setPermission] = useState<string>('default');
+  const [vapidPublicKey, setVapidPublicKey] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
   const pushNewItems = useCallback((items: NotificationItem[]) => {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -92,6 +95,15 @@ export function NotificationBell({ placement = 'right' }: { placement?: 'right' 
     if (typeof Notification !== 'undefined') {
       setPermission(Notification.permission);
     }
+    setVapidPublicKey(getVapidPublicKey());
+
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        swRegistrationRef.current = reg;
+      }).catch((err) => {
+        console.error('Service Worker 注册失败:', err);
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -125,12 +137,40 @@ export function NotificationBell({ placement = 'right' }: { placement?: 'right' 
       perm = await Notification.requestPermission();
     }
     setPermission(perm);
-    if (perm === 'granted') {
+    if (perm !== 'granted') {
+      alert('浏览器通知权限被拒绝，将只显示应用内角标提醒。');
+      return;
+    }
+    try {
+      if (!swRegistrationRef.current) {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        swRegistrationRef.current = reg;
+      }
+      const vapidKey = vapidPublicKey || getVapidPublicKey();
+      const convertedKey = encodeVapidKey(vapidKey);
+      const subscription = await swRegistrationRef.current.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey as unknown as BufferSource,
+      });
+      const raw = subscription.toJSON ? subscription.toJSON() : {};
+      const subJson = {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: (raw as { p256dh?: string }).p256dh || '',
+          auth: (raw as { auth?: string }).auth || '',
+        },
+      };
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: subJson }),
+      });
       localStorage.setItem(NOTIFY_ENABLED_KEY, '1');
       setPushEnabled(true);
       if (data) pushNewItems(data.items);
-    } else {
-      alert('浏览器通知权限被拒绝，将只显示应用内角标提醒。');
+    } catch (error) {
+      console.error('订阅推送失败:', error);
+      alert('订阅推送失败，将只显示应用内角标提醒。');
     }
   };
 

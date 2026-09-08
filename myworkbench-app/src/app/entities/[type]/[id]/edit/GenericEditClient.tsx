@@ -75,7 +75,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || `未找到${TYPE_LABELS[type] || type}`}</p>
-        <Link href={ENTITY_LIST_HREFS[type] || `/${type}s`} className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
+        <Link href={ENTITY_LIST_HREFS[type] || `/${type}s`} className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
         </Link>
       </div>

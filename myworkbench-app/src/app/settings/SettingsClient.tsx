@@ -280,7 +280,7 @@ export function SettingsClient() {
       <Section title="数据">
         <p className="text-sm text-gray-600 dark:text-gray-300">
           导出 / 导入工作台数据（含附件）的入口在{' '}
-          <Link href="/trash" className="text-blue-600 dark:text-blue-400 hover:underline">
+          <Link href="/trash" className="text-accent-600 dark:text-accent-400 hover:underline">
             回收站
           </Link>{' '}
           页顶部；所有 Markdown 原文件始终是唯一数据源。

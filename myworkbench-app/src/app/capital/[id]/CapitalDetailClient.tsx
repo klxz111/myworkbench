@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Capital {
   id: string;
   title: string;
   status: string;
   tags: string[];
+  created_at: string;
   updated_at: string;
   content: string;
   category?: string;
@@ -63,43 +63,26 @@ export function CapitalDetailClient({ id }: CapitalDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到资本'}</p>
-        <Link href="/capital" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回资本列表</Link>
+        <Link href="/capital" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">← 返回资本列表</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{capital.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              {capital.category && <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-full text-xs">{capital.category}</span>}
-              {(capital.amount && capital.currency) && <span>金额：{capital.currency} {capital.amount}</span>}
-              {capital.owner && <span>所有者：{capital.owner}</span>}
-              {capital.risk_level && <span>风险：{capital.risk_level}</span>}
-              <span>更新：{new Date(capital.updated_at).toLocaleDateString()}</span>
-            </div>
-            {capital.tags && capital.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {capital.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/entities/capital/${id}/edit`} className="btn-primary">编辑</Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
-          </div>
-        </div>
-      </div>
-
-      <MarkdownViewer entityType="capital" id={id} />
-      <BacklinksSection entityType="capital" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/capital" className="btn-secondary">← 返回资本列表</Link>
-      </div>
-    </div>
+    <DetailShell
+      entityType="capital"
+      id={id}
+      title={capital.title}
+      status={capital.status}
+      tags={capital.tags || []}
+      created_at={capital.created_at}
+      updated_at={capital.updated_at}
+      listPath="/capital"
+      editHref={`/entities/capital/${id}/edit`}
+      onDelete={handleDelete}
+      deleting={deleting}
+      frontmatter={capital as unknown as Record<string, unknown>}
+    >
+    </DetailShell>
   );
 }

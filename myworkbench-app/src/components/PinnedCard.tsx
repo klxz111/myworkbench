@@ -91,7 +91,7 @@ export function PinnedContent() {
               >
                 <TypeBadge type={r.type} />
                 <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200">{r.title}</span>
-                <span className="shrink-0 text-xs text-blue-600 dark:text-blue-400">置顶 +</span>
+                <span className="shrink-0 text-xs text-accent-600 dark:text-accent-400">置顶 +</span>
               </button>
             ))
           )}
@@ -110,7 +110,7 @@ export function PinnedContent() {
                 <TypeBadge type={pin.type} />
                 <Link
                   href={entityHref(pin.type, pin.id)}
-                  className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-gray-200 hover:text-accent-600 dark:hover:text-accent-400"
                 >
                   {pin.title}
                 </Link>

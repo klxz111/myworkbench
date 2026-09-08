@@ -86,7 +86,7 @@ export function ProjectsClient() {
                             project.status === 'active'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                               : project.status === 'completed'
-                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                              ? 'bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}
                         >
@@ -98,7 +98,7 @@ export function ProjectsClient() {
                     <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/project/${project.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>
@@ -168,7 +168,7 @@ export function ProjectsClient() {
                     <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/experiment/${exp.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>

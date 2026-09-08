@@ -108,7 +108,7 @@ export function CompareClient() {
                   <th key={exp.id} className="text-left px-4 py-3 align-top min-w-[220px]">
                     <Link
                       href={`/experiment/${exp.id}`}
-                      className="text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+                      className="text-sm font-semibold text-gray-900 dark:text-white hover:text-accent-600 dark:hover:text-accent-400"
                     >
                       {exp.title}
                     </Link>

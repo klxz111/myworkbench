@@ -63,10 +63,10 @@ export function LauncherWidget() {
               key={btn.id}
               onClick={() => run(btn.id, btn.label)}
               disabled={launching === btn.id}
-              className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left disabled:opacity-60"
+              className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors text-left disabled:opacity-60"
             >
               <span className="text-sm font-medium text-gray-900 dark:text-white">{btn.label}</span>
-              <span className="shrink-0 text-xs text-blue-600 dark:text-blue-400">
+              <span className="shrink-0 text-xs text-accent-600 dark:text-accent-400">
                 {launching === btn.id ? '启动中...' : '启动 →'}
               </span>
             </button>

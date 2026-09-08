@@ -46,7 +46,7 @@ function editHrefFor(item: CalendarItem): string {
 }
 
 const KIND_DOT: Record<string, string> = {
-  task: 'bg-blue-500',
+  task: 'bg-accent-500',
   gate: 'bg-emerald-500',
   followup: 'bg-purple-500',
   deadline: 'bg-amber-500',
@@ -54,7 +54,7 @@ const KIND_DOT: Record<string, string> = {
 };
 
 const KIND_BADGE: Record<string, string> = {
-  task: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+  task: 'bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300',
   gate: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
   followup: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
   deadline: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
@@ -272,17 +272,17 @@ export function CalendarClient() {
                     }}
                     className={`min-h-[64px] p-1 rounded border text-left transition-colors ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        ? 'border-accent-500 bg-accent-50 dark:bg-accent-900/30'
                         : dragOverDay === day
-                        ? 'border-blue-500 border-dashed bg-blue-50/60 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
+                        ? 'border-accent-500 border-dashed bg-accent-50/60 dark:bg-accent-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                      <span className={`text-xs font-medium ${isToday ? 'text-accent-600 dark:text-accent-400' : 'text-gray-600 dark:text-gray-400'}`}>
                         {day}
                       </span>
-                      {isToday && <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />}
+                      {isToday && <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />}
                     </div>
                     <div className="mt-0.5 flex flex-wrap gap-0.5">
                       {dayItems.slice(0, 4).map((item) => (
@@ -351,7 +351,7 @@ export function CalendarClient() {
                         备注：{item.notes}
                       </p>
                     )}
-                    {item.diff_days === 0 && <p className="text-xs text-blue-600 dark:text-blue-400">今天</p>}
+                    {item.diff_days === 0 && <p className="text-xs text-accent-600 dark:text-accent-400">今天</p>}
                     {item.diff_days < 0 && <p className="text-xs text-red-600 dark:text-red-400">已过期</p>}
                   </Link>
                   <div className="flex shrink-0 flex-col gap-1">
@@ -390,12 +390,12 @@ export function CalendarClient() {
                 onChange={(e) => setQuickTitle(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !adding && addTaskToDay()}
                 placeholder={`添加任务到 ${month} 月 ${selectedDay} 日，回车确认...`}
-                className="flex-1 min-w-0 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 min-w-0 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
               />
               <button
                 onClick={addTaskToDay}
                 disabled={adding || !quickTitle.trim()}
-                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm shrink-0"
+                className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm shrink-0"
               >
                 {adding ? '添加中...' : '添加'}
               </button>

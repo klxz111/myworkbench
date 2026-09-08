@@ -118,7 +118,7 @@ export function TrashClient() {
                   <button
                     onClick={() => restore(item)}
                     disabled={busy === item.file}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+                    className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm"
                   >
                     {busy === item.file ? '...' : '恢复'}
                   </button>

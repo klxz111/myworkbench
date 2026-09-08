@@ -121,17 +121,17 @@ const DEFAULT_ORDER: WidgetKey[] = [
 
 const WIDGET_ACTIONS: Partial<Record<WidgetKey, React.ReactNode>> = {
   gates: (
-    <Link href="/decisions" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+    <Link href="/decisions" className="text-xs text-accent-600 dark:text-accent-400 hover:underline">
       全部决策 →
     </Link>
   ),
   recent: (
-    <Link href="/stats" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+    <Link href="/stats" className="text-xs text-accent-600 dark:text-accent-400 hover:underline">
       统计 →
     </Link>
   ),
   strategies: (
-    <Link href="/strategy" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+    <Link href="/strategy" className="text-xs text-accent-600 dark:text-accent-400 hover:underline">
       管理 →
     </Link>
   ),
@@ -149,6 +149,8 @@ export function HomeClient() {
   // 个人化状态（挂载后才读 localStorage，避免 SSR hydration 错位）
   const [layout, setLayoutState] = useState<HomeLayout>({ hidden: [], order: [] });
   const [editing, setEditing] = useState(false);
+  const [dragKey, setDragKey] = useState<WidgetKey | null>(null);
+  const [overKey, setOverKey] = useState<WidgetKey | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const [identity, setIdentityState] = useState<IdentityPrefs | null>(null);
 
@@ -205,6 +207,20 @@ export function HomeClient() {
     next[a] = other;
     next[b] = key;
     updateLayout({ hidden: layout.hidden, order: next });
+  };
+
+  const handleDrop = (targetKey: WidgetKey) => {
+    if (!dragKey || dragKey === targetKey) return;
+    if (WIDGET_META[dragKey].column !== WIDGET_META[targetKey].column) return;
+    const next = [...orderAll];
+    const fromIdx = next.indexOf(dragKey);
+    const toIdx = next.indexOf(targetKey);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    updateLayout({ hidden: layout.hidden, order: next });
+    setDragKey(null);
+    setOverKey(null);
   };
 
   const hideWidget = (key: WidgetKey) => updateLayout({ hidden: [...layout.hidden, key], order: orderAll });
@@ -289,7 +305,7 @@ export function HomeClient() {
       if (diff === 0) {
         ddl = { text: `${label}就是今天`, cls: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' };
       } else if (diff > 0) {
-        ddl = { text: `距 ${label} 还有 ${diff} 天`, cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' };
+        ddl = { text: `距 ${label} 还有 ${diff} 天`, cls: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300' };
       } else {
         ddl = { text: `${label}已过 ${-diff} 天`, cls: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' };
       }
@@ -298,21 +314,10 @@ export function HomeClient() {
 
   /* ---------- Widget 渲染 ---------- */
   const editControls = (key: WidgetKey) => {
-    const colKeys = orderedVisible.filter((k) => WIDGET_META[k].column === WIDGET_META[key].column);
-    const idx = colKeys.indexOf(key);
-    const btnCls = 'px-2 py-1 rounded text-xs btn-ghost disabled:opacity-40 disabled:cursor-not-allowed';
     return (
-      <div className="flex items-center gap-1">
-        <button onClick={() => moveWidget(key, -1)} disabled={idx <= 0} title="上移" className={btnCls}>
-          ↑
-        </button>
-        <button onClick={() => moveWidget(key, 1)} disabled={idx >= colKeys.length - 1} title="下移" className={btnCls}>
-          ↓
-        </button>
-        <button onClick={() => hideWidget(key)} title="隐藏该卡片" className={btnCls}>
-          隐藏
-        </button>
-      </div>
+      <button onClick={() => hideWidget(key)} title="隐藏该卡片" className="px-2 py-1 rounded text-xs btn-ghost">
+        隐藏
+      </button>
     );
   };
 
@@ -367,13 +372,13 @@ export function HomeClient() {
       case 'strategies':
         return strategies.length === 0 ? (
           <p className="text-sm text-gray-400 dark:text-gray-500 py-1">
-            暂无策略。<Link href="/entities/strategy/new" className="text-blue-600 dark:text-blue-400 hover:underline">创建第一个 →</Link>
+            暂无策略。<Link href="/entities/strategy/new" className="text-accent-600 dark:text-accent-400 hover:underline">创建第一个 →</Link>
           </p>
         ) : (
           <ul className="space-y-2">
             {strategies.map((strategy) => (
               <li key={strategy.id}>
-                <Link href={`/strategy/${strategy.id}`} className="flex items-center justify-between gap-2 px-2 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
+                <Link href={`/strategy/${strategy.id}`} className="flex items-center justify-between gap-2 px-2 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors">
                   <span className="flex-1 min-w-0 truncate text-sm text-gray-900 dark:text-white">{strategy.title}</span>
                   <StatusBadge status={strategy.status} />
                 </Link>
@@ -402,16 +407,29 @@ export function HomeClient() {
     return undefined;
   };
 
-  const widgetCard = (key: WidgetKey) => (
-    <SectionCard
-      key={key}
-      title={WIDGET_META[key].title}
-      count={widgetCount(key)}
-      actions={editing ? editControls(key) : WIDGET_ACTIONS[key]}
-    >
-      {renderWidget(key)}
-    </SectionCard>
-  );
+  const widgetCard = (key: WidgetKey) => {
+    const isDragging = dragKey === key;
+    const isOver = overKey === key && dragKey !== key;
+    return (
+      <div
+        draggable={editing}
+        onDragStart={() => setDragKey(key)}
+        onDragOver={(e) => { e.preventDefault(); setOverKey(key); }}
+        onDragLeave={() => setOverKey(null)}
+        onDrop={() => handleDrop(key)}
+        onDragEnd={() => { setDragKey(null); setOverKey(null); }}
+        className={`${isDragging ? 'opacity-50' : ''} ${isOver ? 'ring-2 ring-inset ring-accent-500 rounded-lg' : ''}`}
+      >
+        <SectionCard
+          title={WIDGET_META[key].title}
+          count={widgetCount(key)}
+          actions={editing ? editControls(key) : WIDGET_ACTIONS[key]}
+        >
+          {renderWidget(key)}
+        </SectionCard>
+      </div>
+    );
+  };
 
   const leftKeys = orderedVisible.filter((k) => WIDGET_META[k].column === 'left');
   const rightKeys = orderedVisible.filter((k) => WIDGET_META[k].column === 'right');
@@ -430,7 +448,7 @@ export function HomeClient() {
             {!identityConfigured && (
               <>
                 {dateLine ? ' · ' : ''}
-                <Link href="/settings" className="text-blue-600 dark:text-blue-400 hover:underline">
+                <Link href="/settings" className="text-accent-600 dark:text-accent-400 hover:underline">
                   设置名字和本周焦点 →
                 </Link>
               </>
@@ -496,7 +514,7 @@ export function HomeClient() {
                   className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-xs text-gray-600 dark:text-gray-300"
                 >
                   {WIDGET_META[k as WidgetKey].title}
-                  <button onClick={() => showWidget(k as WidgetKey)} className="text-blue-600 dark:text-blue-400 hover:underline">
+                  <button onClick={() => showWidget(k as WidgetKey)} className="text-accent-600 dark:text-accent-400 hover:underline">
                     显示
                   </button>
                 </span>
@@ -507,12 +525,12 @@ export function HomeClient() {
       {/* 长尾概览入口：数据在各自专属页可见，不再铺满首页 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-sm text-gray-500 dark:text-gray-400">
         <span className="text-xs font-medium uppercase tracking-wider text-gray-400">更多概览</span>
-        <Link href="/opportunity" className="hover:text-blue-600 dark:hover:text-blue-400">机会</Link>
-        <Link href="/people" className="hover:text-blue-600 dark:hover:text-blue-400">人脉跟进</Link>
-        <Link href="/capital" className="hover:text-blue-600 dark:hover:text-blue-400">资本</Link>
-        <Link href="/events" className="hover:text-blue-600 dark:hover:text-blue-400">事件</Link>
-        <Link href="/research" className="hover:text-blue-600 dark:hover:text-blue-400">研究</Link>
-        <Link href="/projects" className="hover:text-blue-600 dark:hover:text-blue-400">项目</Link>
+        <Link href="/opportunity" className="hover:text-accent-600 dark:hover:text-accent-400">机会</Link>
+        <Link href="/people" className="hover:text-accent-600 dark:hover:text-accent-400">人脉跟进</Link>
+        <Link href="/capital" className="hover:text-accent-600 dark:hover:text-accent-400">资本</Link>
+        <Link href="/events" className="hover:text-accent-600 dark:hover:text-accent-400">事件</Link>
+        <Link href="/research" className="hover:text-accent-600 dark:hover:text-accent-400">研究</Link>
+        <Link href="/projects" className="hover:text-accent-600 dark:hover:text-accent-400">项目</Link>
       </div>
     </div>
   );

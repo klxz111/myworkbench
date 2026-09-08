@@ -361,7 +361,7 @@ export function FileTree({ refreshKey = 0 }: { refreshKey?: number }) {
               onClick={() => setTab(t.key)}
               className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                 tab === t.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent-600 text-white'
                   : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >

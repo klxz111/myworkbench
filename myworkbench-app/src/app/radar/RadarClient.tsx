@@ -92,7 +92,7 @@ export function RadarClient() {
               onClick={() => setFilter(item.key)}
               className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                 filter === item.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
@@ -103,7 +103,7 @@ export function RadarClient() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
         >
           <option value="all">全部分类</option>
           <option value="ai_research">AI 研究</option>
@@ -194,7 +194,7 @@ export function RadarClient() {
                     <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/radar/${radar.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>

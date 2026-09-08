@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { collectDatedItems, KIND_LABELS, diffDays } from '@/lib/due-items';
+import { sendPushNotification } from '@/lib/push';
+import { initDb } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -19,12 +21,41 @@ export async function GET() {
         diff_days: diffDays(item.date),
         href: item.href,
       }))
-      // 机会截止的提醒窗口放宽到 14 天，其余 7 天
       .filter((item) => item.diff_days <= (item.kind === 'deadline' ? 14 : 7))
       .sort((a, b) => a.diff_days - b.diff_days);
 
     const overdue_count = items.filter((i) => i.diff_days < 0).length;
     const upcoming_count = items.length - overdue_count;
+
+    if (items.length > 0) {
+      const db = initDb();
+      const subscriptions = db.prepare('SELECT * FROM push_subscriptions').all() as {
+        endpoint: string;
+        p256dh: string | null;
+        auth: string | null;
+      }[];
+      for (const sub of subscriptions) {
+        const payload = {
+          title: `myworkbench：${overdue_count > 0 ? '逾期提醒' : '即将到期'}`,
+          body: items[0].title,
+          data: { href: items[0].href },
+        };
+        try {
+          await sendPushNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: {
+                p256dh: sub.p256dh || '',
+                auth: sub.auth || '',
+              },
+            },
+            payload
+          );
+        } catch {
+          // 推送失败不影响 API 返回
+        }
+      }
+    }
 
     return NextResponse.json({ overdue_count, upcoming_count, items });
   } catch (error) {

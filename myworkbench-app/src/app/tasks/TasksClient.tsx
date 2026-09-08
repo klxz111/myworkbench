@@ -27,7 +27,7 @@ const PRIORITY_BADGE: Record<string, string> = {
 
 const SECTION_META: { status: string; label: string; accent: string }[] = [
   { status: 'todo', label: '待办', accent: 'border-l-gray-400' },
-  { status: 'doing', label: '进行中', accent: 'border-l-blue-500' },
+  { status: 'doing', label: '进行中', accent: 'border-l-accent-500' },
   { status: 'done', label: '已完成', accent: 'border-l-emerald-500' },
 ];
 
@@ -147,7 +147,7 @@ export function TasksClient() {
                           />
                           <Link href={`/entities/task/${task.id}`} className="flex-1 min-w-0 group">
                             <span
-                              className={`block truncate text-sm font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 ${
+                              className={`block truncate text-sm font-medium group-hover:text-accent-600 dark:group-hover:text-accent-400 ${
                                 task.status === 'done'
                                   ? 'text-gray-400 dark:text-gray-500 line-through'
                                   : 'text-gray-900 dark:text-white'

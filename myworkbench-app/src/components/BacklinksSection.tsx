@@ -64,7 +64,7 @@ export function BacklinksSection({ entityType, entityId }: BacklinksSectionProps
               <Link
                 key={`${r.relation}-${r.from_id}`}
                 href={r.href}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 bg-accent-50 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 rounded-full text-sm hover:bg-accent-100 dark:hover:bg-accent-900/50 transition-colors"
               >
                 <span className="text-xs font-medium uppercase">{r.relation}</span>
                 <span>{r.from_title}</span>
@@ -80,7 +80,7 @@ export function BacklinksSection({ entityType, entityId }: BacklinksSectionProps
           <ul className="space-y-2">
             {contentLinks.map((l) => (
               <li key={l.from_id}>
-                <Link href={l.href} className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                <Link href={l.href} className="text-sm text-accent-600 dark:text-accent-400 hover:underline font-medium">
                   {l.from_title}
                 </Link>
                 <span className="ml-2 text-[10px] text-gray-400 uppercase">

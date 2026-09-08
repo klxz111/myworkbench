@@ -84,7 +84,7 @@ export function DataManagement() {
             className={`flex-1 min-w-[160px] flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
               importing
                 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-accent-600 text-white hover:bg-accent-700'
             }`}
           >
             {importing ? '导入中...' : fileName ? `重新选择文件` : '选择快照文件并导入'}
@@ -118,7 +118,7 @@ export function DataManagement() {
       <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
         <Link
           href="/trash"
-          className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+          className="inline-flex items-center gap-2 text-sm text-accent-600 dark:text-accent-400 hover:underline"
         >
           ♻ 回收站 — 恢复误删的实体
         </Link>

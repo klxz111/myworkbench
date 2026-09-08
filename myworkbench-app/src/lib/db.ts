@@ -103,6 +103,7 @@ export function initDb() {
       author TEXT,
       published_at TEXT,
       summary TEXT,
+      content TEXT,
       read INTEGER DEFAULT 0,
       fetched_at TEXT DEFAULT (datetime('now')),
       UNIQUE(feed_id, guid)
@@ -110,6 +111,12 @@ export function initDb() {
   `);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_feed_published ON rss_entries(feed_id, published_at DESC)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_rss_entries_read ON rss_entries(feed_id, read)`);
+
+  // 增量迁移：rss_entries 添加 content 列
+  const rssEntryCols = db.prepare(`PRAGMA table_info(rss_entries)`).all() as { name: string }[];
+  if (rssEntryCols.length > 0 && !rssEntryCols.some((c) => c.name === 'content')) {
+    db.exec(`ALTER TABLE rss_entries ADD COLUMN content TEXT`);
+  }
 
   // 增量迁移：rss_feeds 分类列（ai/quant/invest，空串=未分类）
   const rssFeedCols = db.prepare(`PRAGMA table_info(rss_feeds)`).all() as { name: string }[];
@@ -125,6 +132,19 @@ export function initDb() {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_entities_type_updated ON entities(type, updated_at DESC)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_from_id ON relations(from_id)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_relations_to_id ON relations(to_id)`);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT,
+      auth TEXT,
+      user_agent TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions(endpoint)`);
 
   db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS entities_fts USING fts5(

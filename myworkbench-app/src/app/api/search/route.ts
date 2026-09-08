@@ -54,11 +54,12 @@ export async function GET(request: NextRequest) {
         ORDER BY e.updated_at DESC
       `).all(like, like, like) as typeof rows;
     } else {
-      // 按词切分并逐词加引号：既保留 AND 语义，又让 " ( ) : * 等不再被当作 FTS5 语法
-      const match = query
+      const terms = query
         .split(/\s+/)
         .filter(Boolean)
-        .map((t) => '"' + t.replace(/"/g, '""') + '"')
+        .map((t) => t.replace(/"/g, '""'));
+      const match = terms
+        .map((t, i) => (i < terms.length - 1 ? `"${t}"` : `${t.replace(/\*+$/, '')}*`))
         .join(' ');
       // entities_fts 是 contentless 表（不存列值），须按 rowid 关联主表
       rows = db.prepare(`

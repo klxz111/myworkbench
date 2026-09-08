@@ -164,7 +164,7 @@ export function ContentEditor({ value, onChange, placeholder }: ContentEditorPro
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white font-mono text-sm"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white font-mono text-sm"
           />
         )}
         {showPreview && (
@@ -172,7 +172,7 @@ export function ContentEditor({ value, onChange, placeholder }: ContentEditorPro
             mode === 'split' ? 'max-h-[420px]' : 'min-h-[120px]'
           }`}>
             {value.trim() ? (
-              <MarkdownPreview content={value} />
+              <MarkdownPreview content={value} resolveWikiLinks />
             ) : (
               <p className="text-sm text-gray-400 dark:text-gray-500">暂无内容，左侧输入的 Markdown 会在这里实时渲染。</p>
             )}

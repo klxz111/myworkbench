@@ -62,7 +62,7 @@ const BOARD_TYPES: BoardType[] = [
 
 const COLUMN_COLORS: Record<string, string> = {
   todo: 'border-t-gray-400',
-  doing: 'border-t-blue-500',
+  doing: 'border-t-accent-500',
   done: 'border-t-emerald-500',
   active: 'border-t-emerald-500',
   draft: 'border-t-amber-500',
@@ -89,6 +89,7 @@ export function BoardClient() {
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const [columnOrder, setColumnOrder] = useState<Record<string, string[]>>({});
 
   const board = BOARD_TYPES[typeIndex];
 
@@ -96,9 +97,21 @@ export function BoardClient() {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/entities/${board.type}`);
+        const [res, saved] = await Promise.all([
+          fetch(`/api/entities/${board.type}`),
+          typeof window !== 'undefined'
+            ? Promise.resolve(localStorage.getItem(`mwbench_board_order_${board.type}`))
+            : Promise.resolve(null),
+        ]);
         if (res.ok) setItems(await res.json());
         else setItems([]);
+        if (saved) {
+          try {
+            setColumnOrder(JSON.parse(saved));
+          } catch {
+            setColumnOrder({});
+          }
+        }
       } catch {
         setItems([]);
       } finally {
@@ -110,7 +123,6 @@ export function BoardClient() {
 
   const setStatus = async (item: BoardItem, status: string) => {
     if (item.status === status) return;
-    // 循环任务拖到"已完成" = 推进到下一周期（与日历/今日/任务页的完成语义一致），而非置 done
     const data =
       board.type === 'task' && status === 'done'
         ? completeTaskPayload(item).data
@@ -122,9 +134,26 @@ export function BoardClient() {
         body: JSON.stringify({ data }),
       });
       if (!res.ok) throw new Error('更新失败');
-      setItems((prev) =>
-        prev.map((it) => (it.id === item.id ? { ...it, ...data, updated_at: new Date().toISOString() } : it))
-      );
+      setItems((prev) => {
+        const next = prev.map((it) => (it.id === item.id ? { ...it, ...data, updated_at: new Date().toISOString() } : it));
+        const src = next.filter((it) => it.status === item.status && it.id !== item.id).map((it) => it.id);
+        const dst = next.filter((it) => it.status === status).map((it) => it.id);
+        const newOrder: Record<string, string[]> = {};
+        if (src.length > 0 || dst.length > 0) {
+          newOrder[item.status] = src;
+          newOrder[status] = dst;
+        }
+        if (Object.keys(newOrder).length > 0) {
+          setColumnOrder((prev) => {
+            const merged = { ...prev, ...newOrder };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`mwbench_board_order_${board.type}`, JSON.stringify(merged));
+            }
+            return merged;
+          });
+        }
+        return next;
+      });
     } catch (error) {
       console.error('Error updating status:', error);
       alert('更新状态失败');
@@ -144,7 +173,7 @@ export function BoardClient() {
             onClick={() => setTypeIndex(i)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               typeIndex === i
-                ? 'bg-blue-600 text-white'
+                ? 'bg-accent-600 text-white'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
@@ -158,7 +187,13 @@ export function BoardClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {board.columns.map((col) => {
-          const colItems = visible.filter((it) => it.status === col.status);
+          const colItems = visible
+            .filter((it) => it.status === col.status)
+            .sort((a, b) => {
+              const order = columnOrder[col.status];
+              if (!order) return 0;
+              return order.indexOf(a.id) - order.indexOf(b.id);
+            });
           return (
             <div
               key={col.status}
@@ -176,7 +211,7 @@ export function BoardClient() {
               className={`bg-gray-50 dark:bg-gray-900/40 rounded-lg border border-gray-200 dark:border-gray-700 border-t-4 ${
                 COLUMN_COLORS[col.status] || 'border-t-gray-400'
               } p-3 min-h-[200px] transition-colors ${
-                dragOver === col.status ? 'ring-2 ring-blue-400 bg-blue-50/50 dark:bg-blue-900/20' : ''
+                dragOver === col.status ? 'ring-2 ring-accent-400 bg-accent-50/50 dark:bg-accent-900/20' : ''
               }`}
             >
               <div className="flex items-center justify-between mb-3 px-1">
@@ -202,7 +237,7 @@ export function BoardClient() {
                   >
                     <Link
                       href={detailHref(board.type, item.id)}
-                      className="text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2"
+                      className="text-sm font-medium text-gray-900 dark:text-white hover:text-accent-600 dark:hover:text-accent-400 line-clamp-2"
                     >
                       {item.title}
                     </Link>

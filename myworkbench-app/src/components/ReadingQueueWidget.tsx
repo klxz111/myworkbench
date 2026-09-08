@@ -57,7 +57,7 @@ export function ReadingQueueWidget() {
         <p className="text-sm text-gray-400 dark:text-gray-500 py-1">加载中...</p>
       ) : items.length === 0 ? (
         <p className="text-sm text-gray-400 dark:text-gray-500 py-1">
-          队列为空。在 <Link href="/rss" className="text-blue-600 dark:text-blue-400 hover:underline">RSS 订阅</Link> 里点「文献」把想读的论文加进来。
+          队列为空。在 <Link href="/rss" className="text-accent-600 dark:text-accent-400 hover:underline">RSS 订阅</Link> 里点「文献」把想读的论文加进来。
         </p>
       ) : (
         <ul className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -65,7 +65,7 @@ export function ReadingQueueWidget() {
             <li key={item.id} className="flex items-center gap-2 py-2">
               <Link
                 href={`/evidence/${item.id}`}
-                className="flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 truncate"
+                className="flex-1 min-w-0 text-sm text-gray-900 dark:text-gray-200 hover:text-accent-600 dark:hover:text-accent-400 truncate"
                 title={item.title}
               >
                 {item.title}

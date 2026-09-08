@@ -256,7 +256,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="btn-danger"
           >
             删除
           </button>
@@ -343,7 +343,7 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
                       <li key={i}>
                         <button
                           onClick={() => scrollToHeading(i)}
-                          className={`block w-full text-left text-xs text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 truncate rounded px-1 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-700/60`}
+                          className={`block w-full text-left text-xs text-gray-600 dark:text-gray-300 hover:text-accent-600 dark:hover:text-accent-400 truncate rounded px-1 py-0.5 hover:bg-gray-100 dark:hover:bg-gray-700/60`}
                           style={{ paddingLeft: `${(h.level - 1) * 12 + 4}px` }}
                           title={h.text}
                         >
@@ -356,14 +356,14 @@ export function MarkdownEditor({ filePath }: MarkdownEditorProps) {
               </div>
             )}
             <div className="p-6">
-              <MarkdownPreview content={body} />
+              <MarkdownPreview content={body} resolveWikiLinks />
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-200 dark:border-gray-700 text-[11px] text-gray-400 dark:text-gray-500">
           <span>
             {uploadingImages > 0 ? (
-              <span className="text-blue-600 dark:text-blue-400">图片上传中...</span>
+              <span className="text-accent-600 dark:text-accent-400">图片上传中...</span>
             ) : (
               <>约 {words.toLocaleString()} 字 · {chars.toLocaleString()} 字符</>
             )}

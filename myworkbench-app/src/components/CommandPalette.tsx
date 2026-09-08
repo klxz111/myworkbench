@@ -31,8 +31,8 @@ const PAGE_COMMANDS: { label: string; href: string }[] = [
   { label: '研究', href: '/research' },
   { label: '决策', href: '/decisions' },
   { label: '雷达', href: '/radar' },
-  { label: '网络', href: '/network' },
-  { label: '知识树', href: '/knowledge' },
+  { label: '网络', href: '/graph?view=talent' },
+  { label: '知识树', href: '/graph?view=knowledge' },
   { label: '想法看板', href: '/ideas' },
   { label: '档案', href: '/profile' },
   { label: '资本', href: '/capital' },
@@ -210,7 +210,7 @@ export function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleListKeyDown}
             placeholder="搜索实体、跳转页面、新建、切换主题..."
-            className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-500"
           />
         </div>
 
@@ -229,7 +229,7 @@ export function CommandPalette() {
                     onMouseEnter={() => setActiveIndex(idx)}
                     className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm ${
                       idx === activeIndex
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        ? 'bg-accent-50 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300'
                         : 'text-gray-700 dark:text-gray-300'
                     }`}
                   >
@@ -256,11 +256,11 @@ export function CommandPalette() {
                     onClick={() => runItem(idx)}
                     onMouseEnter={() => setActiveIndex(idx)}
                     className={`w-full text-left px-4 py-2 ${
-                      idx === activeIndex ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+                      idx === activeIndex ? 'bg-accent-50 dark:bg-accent-900/30' : ''
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded uppercase">
+                      <span className="text-xs font-medium text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/30 px-2 py-0.5 rounded uppercase">
                         {ENTITY_LABELS[result.type] || result.type}
                       </span>
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.title}</span>

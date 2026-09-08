@@ -70,7 +70,7 @@ export function ExperimentsClient() {
         <ListToolbar {...controls.toolbar} placeholder="搜索实验标题 / 标签..." />
       )}
       {selected.size > 0 && (
-        <div className="sticky bottom-4 z-20 flex items-center justify-between card p-4 shadow-lg border-blue-200 dark:border-blue-800">
+        <div className="sticky bottom-4 z-20 flex items-center justify-between card p-4 shadow-lg border-accent-200 dark:border-accent-800">
           <span className="text-sm text-gray-700 dark:text-gray-200">
             已选 {selected.size} 个实验（最多 {MAX_COMPARE}）
           </span>
@@ -147,7 +147,7 @@ export function ExperimentsClient() {
                 <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/experiment/${exp.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>

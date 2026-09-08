@@ -376,7 +376,7 @@ export function NetworkGraph() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索人名 / 职位 / 机构..."
-          className="w-56 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-56 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
         />
         <button
           onClick={fitView}
@@ -559,10 +559,10 @@ export function NetworkGraph() {
                       <li key={o.id}>
                         <Link
                           href={o.href}
-                          className="block p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                          className="block p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors"
                         >
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-[10px] font-medium">
+                            <span className="px-1.5 py-0.5 rounded bg-accent-100 dark:bg-accent-900 text-accent-700 dark:text-accent-300 text-[10px] font-medium">
                               {CATEGORY_LABELS[o.category] || o.category}
                             </span>
                             {o.strategic_fit && (
@@ -594,7 +594,7 @@ export function NetworkGraph() {
 
             <Link
               href={selected.href}
-              className="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="mt-4 inline-block text-sm text-accent-600 dark:text-accent-400 hover:underline"
             >
               打开完整详情页 →
             </Link>

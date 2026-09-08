@@ -105,7 +105,7 @@ export function ProfileVersionsPanel({ profileId }: { profileId: string }) {
           <button
             onClick={handleCompile}
             disabled={compiling || loading}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+            className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm"
           >
             {compiling ? '编译中...' : '重新编译并写回档案'}
           </button>
@@ -148,8 +148,8 @@ export function ProfileVersionsPanel({ profileId }: { profileId: string }) {
               </p>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <p className="text-sm text-blue-900 dark:text-blue-200">{current.summary}</p>
+            <div className="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg p-4">
+              <p className="text-sm text-accent-900 dark:text-accent-200">{current.summary}</p>
             </div>
 
             {current.stats.length > 0 && (
@@ -174,7 +174,7 @@ export function ProfileVersionsPanel({ profileId }: { profileId: string }) {
                 <ul className="space-y-2">
                   {current.highlights.map((h, i) => (
                     <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent-500 flex-shrink-0" />
                       <span>
                         {h.text}
                         {h.refs && h.refs.length > 0 && (
@@ -183,7 +183,7 @@ export function ProfileVersionsPanel({ profileId }: { profileId: string }) {
                               <a
                                 key={r.id}
                                 href={`${TYPE_PATHS[r.type] || '/entities'}/${r.id}`}
-                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                className="text-xs text-accent-600 dark:text-accent-400 hover:underline"
                               >
                                 [{r.title}]
                               </a>

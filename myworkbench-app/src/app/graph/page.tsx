@@ -1,15 +1,13 @@
 import { Suspense } from 'react';
 import { PageHeader } from '@/components/ui';
-import { GraphClient } from './GraphClient';
-
-export const dynamic = 'force-dynamic';
+import { GraphHub } from './GraphHub';
 
 export default function GraphPage() {
   return (
     <div className="space-y-6">
-      <PageHeader title="证据链" description="可视化证据、信念、决策与项目之间的连接" />
-      <Suspense fallback={<div className="text-gray-500">Loading graph...</div>}>
-        <GraphClient />
+      <PageHeader title="图谱" description="证据链、知识树、人脉网络三合一可视化" />
+      <Suspense fallback={<div className="text-gray-500">加载中...</div>}>
+        <GraphHub />
       </Suspense>
     </div>
   );

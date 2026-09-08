@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Organization {
   id: string;
@@ -11,6 +10,7 @@ interface Organization {
   status: string;
   tags: string[];
   updated_at: string;
+  created_at: string;
   content: string;
   industry?: string;
   location?: string;
@@ -63,7 +63,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到组织'}</p>
-        <Link href="/organizations" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">
+        <Link href="/organizations" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">
           ← 返回组织列表
         </Link>
       </div>
@@ -71,43 +71,10 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{organization.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                organization.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-              }`}>
-                {organization.status}
-              </span>
-              {organization.industry && <span>行业：{organization.industry}</span>}
-              {organization.location && <span>地点：{organization.location}</span>}
-              {organization.website && <a href={organization.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">网站</a>}
-              <span>更新：{new Date(organization.updated_at).toLocaleDateString()}</span>
-            </div>
-            {organization.tags && organization.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {organization.tags.map((tag) => (
-                  <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/organizations/${id}/edit`} className="btn-primary">
-              编辑
-            </Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">
-              {deleting ? '删除中...' : '删除'}
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <DetailShell entityType="organization" id={id} title={organization.title} status={organization.status}
+      tags={organization.tags || []} created_at={organization.created_at || ''} updated_at={organization.updated_at}
+      listPath="/organizations" editHref={`/organizations/${id}/edit`} onDelete={handleDelete} deleting={deleting}
+      frontmatter={organization as unknown as Record<string, unknown>}>
       {(organization.linked_people && organization.linked_people.length > 0) && (
         <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">关联人员</h3>
@@ -115,7 +82,7 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
             {organization.linked_people.map((personId) => (
               <li key={personId}>
                 <Link href={`/people/${personId}`} className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="font-medium text-blue-600 dark:text-blue-400">{personId}</div>
+                  <div className="font-medium text-accent-600 dark:text-accent-400">{personId}</div>
                 </Link>
               </li>
             ))}
@@ -130,22 +97,13 @@ export function OrganizationDetailClient({ id }: OrganizationDetailProps) {
             {organization.linked_opportunities.map((oppId) => (
               <li key={oppId}>
                 <Link href={`/opportunity/${oppId}`} className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="font-medium text-blue-600 dark:text-blue-400">{oppId}</div>
+                  <div className="font-medium text-accent-600 dark:text-accent-400">{oppId}</div>
                 </Link>
               </li>
             ))}
           </ul>
         </section>
       )}
-
-      <MarkdownViewer entityType="organization" id={id} />
-      <BacklinksSection entityType="organization" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/organizations" className="btn-secondary">
-          ← 返回组织列表
-        </Link>
-      </div>
-    </div>
+    </DetailShell>
   );
 }

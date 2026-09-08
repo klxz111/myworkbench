@@ -88,7 +88,7 @@ export function GenericCreateClient({ type }: GenericCreateProps) {
       <div className="mt-6">
         <Link
           href={TYPE_LIST_PATHS[type] || `/${type}s`}
-          className="text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-accent-600 dark:text-accent-400 hover:underline"
         >
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type + 's'}
         </Link>

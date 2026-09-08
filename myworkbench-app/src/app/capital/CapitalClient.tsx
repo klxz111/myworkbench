@@ -79,7 +79,7 @@ export function CapitalClient() {
               onClick={() => setFilter(item.key)}
               className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                 filter === item.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent-600 text-white'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
@@ -89,11 +89,11 @@ export function CapitalClient() {
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
+      <div className="bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800 rounded-lg p-6">
+        <h2 className="text-xl font-semibold text-accent-900 dark:text-accent-200 mb-2">
           资本仪表板
         </h2>
-        <p className="text-blue-800 dark:text-blue-300 mb-4">
+        <p className="text-accent-800 dark:text-accent-300 mb-4">
           追踪并累积您的多维度资本。
         </p>
         {latestCapital && (
@@ -160,7 +160,7 @@ export function CapitalClient() {
                   <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/capital/${entry.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>

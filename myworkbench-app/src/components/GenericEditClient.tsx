@@ -83,7 +83,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
         <p className="text-red-800 dark:text-red-200">{error || '未找到该条目'}</p>
         <Link
           href={ENTITY_LIST_HREFS[type] || `/${type}s`}
-          className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline"
+          className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline"
         >
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type + 's'}
         </Link>
@@ -118,7 +118,7 @@ export function GenericEditClient({ type, id }: GenericEditProps) {
       <div className="mt-6">
         <Link
           href={ENTITY_LIST_HREFS[type] || `/${type}s`}
-          className="text-blue-600 dark:text-blue-400 hover:underline"
+          className="text-accent-600 dark:text-accent-400 hover:underline"
         >
           ← 返回{TYPE_LABELS[type] ? TYPE_LABELS[type] + '列表' : type + 's'}
         </Link>

@@ -12,7 +12,7 @@ interface Evidence {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  paper: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  paper: 'bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200',
   news: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   policy: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   company: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
@@ -102,7 +102,7 @@ export function EvidenceClient() {
                 <div className="flex gap-2 ml-4">
                       <Link
                         href={`/entities/evidence/${item.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="px-3 py-1.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 text-sm"
                       >
                         编辑
                       </Link>

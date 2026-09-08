@@ -377,7 +377,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="搜索领域 / 研究方向..."
-          className="w-56 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-56 px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
         />
         <button
           onClick={fitView}
@@ -394,7 +394,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
         {activeCat !== null && (
           <button
             onClick={() => setActiveCat(null)}
-            className="px-3 py-1.5 text-sm border border-blue-300 dark:border-blue-700 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+            className="px-3 py-1.5 text-sm border border-accent-300 dark:border-accent-700 rounded-lg text-accent-600 dark:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/30"
           >
             取消隔离：{tree.categories[activeCat]?.name} ✕
           </button>
@@ -412,7 +412,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
             onClick={() => setActiveCat(activeCat === i ? null : i)}
             className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs border transition-colors ${
               activeCat === i
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                ? 'border-accent-500 bg-accent-50 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300'
                 : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
           >
@@ -581,7 +581,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
                   href={`https://hub.baai.ac.cn/knowledge-tree/${selected.notionId}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  className="mt-4 inline-block text-sm text-accent-600 dark:text-accent-400 hover:underline"
                 >
                   在智源社区查看 →
                 </a>
@@ -602,10 +602,10 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
                       <li key={`${p.type}-${p.id}`}>
                         <Link
                           href={p.href}
-                          className="block p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                          className="block p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors"
                         >
                           <div className="flex items-center gap-1.5">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-[10px] font-medium">
+                            <span className="px-1.5 py-0.5 rounded bg-accent-100 dark:bg-accent-900 text-accent-700 dark:text-accent-300 text-[10px] font-medium">
                               {TYPE_LABELS[p.type] || p.type}
                             </span>
                             <span className="text-sm text-gray-900 dark:text-gray-200 truncate">{p.title}</span>
@@ -659,7 +659,7 @@ export function KnowledgeGraph({ tree, myPositions }: KnowledgeGraphProps) {
                         className="w-full text-left group"
                       >
                         <div className="flex items-center justify-between text-xs">
-                          <span className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                          <span className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300 group-hover:text-accent-600 dark:group-hover:text-accent-400">
                             <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ backgroundColor: c.color }} />
                             {c.name}
                           </span>

@@ -143,14 +143,15 @@ export async function fetchFeed(feed: { id: number; url: string; title: string }
     const description = parsed.description ? stripHtml(parsed.description) : null;
 
     const upsert = db.prepare(
-      `INSERT INTO rss_entries (feed_id, guid, title, link, author, published_at, summary)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO rss_entries (feed_id, guid, title, link, author, published_at, summary, content)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(feed_id, guid) DO UPDATE SET
          title = excluded.title,
          link = excluded.link,
          author = excluded.author,
          published_at = excluded.published_at,
          summary = excluded.summary,
+         content = excluded.content,
          fetched_at = datetime('now')`
     );
     const trim = db.prepare(
@@ -175,7 +176,8 @@ export async function fetchFeed(feed: { id: number; url: string; title: string }
           item.link || null,
           (item as { creator?: string }).creator || null,
           item.isoDate || item.pubDate || null,
-          item.contentSnippet ? stripHtml(item.contentSnippet) : null
+          item.contentSnippet ? stripHtml(item.contentSnippet) : null,
+          item.content || item.contentSnippet || null
         );
       }
       trim.run(feed.id, feed.id, ENTRY_KEEP_LIMIT);
@@ -228,8 +230,8 @@ export async function addFeed(
     const feedId = Number(info.lastInsertRowid);
 
     const upsert = db.prepare(
-      `INSERT OR IGNORE INTO rss_entries (feed_id, guid, title, link, author, published_at, summary)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT OR IGNORE INTO rss_entries (feed_id, guid, title, link, author, published_at, summary, content)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     );
     const insertAll = db.transaction(() => {
       for (const item of parsed.items || []) {
@@ -242,7 +244,8 @@ export async function addFeed(
           item.link || null,
           (item as { creator?: string }).creator || null,
           item.isoDate || item.pubDate || null,
-          item.contentSnippet ? stripHtml(item.contentSnippet) : null
+          item.contentSnippet ? stripHtml(item.contentSnippet) : null,
+          item.content || item.contentSnippet || null
         );
       }
       db.prepare(`DELETE FROM rss_entries WHERE feed_id = ? AND id NOT IN (
@@ -277,6 +280,29 @@ export function setFeedCategory(id: number, category: string): boolean {
   return info.changes > 0;
 }
 
+export function getEntry(id: number): { id: number; feed_id: number; guid: string; title: string; link: string | null; author: string | null; published_at: string | null; summary: string | null; content: string | null; read: number; feed_title: string } | null {
+  const db = initDb();
+  const row = db.prepare(`SELECT e.*, f.title AS feed_title FROM rss_entries e JOIN rss_feeds f ON f.id = e.feed_id WHERE e.id = ?`).get(id) as {
+    id: number;
+    feed_id: number;
+    guid: string;
+    title: string;
+    link: string | null;
+    author: string | null;
+    published_at: string | null;
+    summary: string | null;
+    content: string | null;
+    read: number;
+    feed_title: string;
+  } | undefined;
+  return row || null;
+}
+
+export function markEntryRead(id: number): void {
+  const db = initDb();
+  db.prepare(`UPDATE rss_entries SET read = 1 WHERE id = ?`).run(id);
+}
+
 /** 逐个刷新给定源（串行，避免并发抓取打满带宽） */
 export async function refreshFeeds(feedIds?: number[]): Promise<FetchResult[]> {
   const db = initDb();
@@ -291,4 +317,80 @@ export async function refreshFeeds(feedIds?: number[]): Promise<FetchResult[]> {
     results.push(await fetchFeed(feed));
   }
   return results;
+}
+
+/** OPML 导出：将所有订阅源导出为 OPML 2.0 XML */
+export function exportOpml(): string {
+  const db = initDb();
+  const feeds = db.prepare('SELECT * FROM rss_feeds ORDER BY created_at ASC, id ASC').all() as FeedRow[];
+  
+  const categoryGroups = new Map<string, FeedRow[]>();
+  for (const feed of feeds) {
+    const cat = feed.category || '';
+    if (!categoryGroups.has(cat)) categoryGroups.set(cat, []);
+    categoryGroups.get(cat)!.push(feed);
+  }
+
+  const outlines: string[] = [];
+  for (const [category, categoryFeeds] of categoryGroups) {
+    const catLabel = category ? categoryLabel(category) : '未分类';
+    const feedOutlines = categoryFeeds
+      .map(
+        (f) =>
+          `    <outline text="${escapeXml(f.title)}" title="${escapeXml(f.title)}" type="rss" xmlUrl="${escapeXml(f.url)}"${f.site_url ? ` htmlUrl="${escapeXml(f.site_url)}"` : ''} />`
+      )
+      .join('\n');
+    outlines.push(`  <outline text="${escapeXml(catLabel)}" title="${escapeXml(catLabel)}">\n${feedOutlines}\n  </outline>`);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>MyWorkbench RSS Subscriptions</title>
+  </head>
+  <body>
+${outlines.join('\n')}
+  </body>
+</opml>`;
+}
+
+/** OPML 导入：解析 OPML XML，返回新增/跳过的统计 */
+export function importOpml(xml: string): { added: number; skipped: number; errors: string[] } {
+  const db = initDb();
+  let added = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  const outlineRegex = /<outline\s+[^>]*xmlUrl\s*=\s*["']([^"']+)["'][^>]*>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = outlineRegex.exec(xml)) !== null) {
+    const url = match[1].trim();
+    if (!url || !isValidFeedUrl(url)) continue;
+    const existing = db.prepare('SELECT id FROM rss_feeds WHERE url = ?').get(url);
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    try {
+      const info = db
+        .prepare(
+          `INSERT INTO rss_feeds (title, url, site_url, description, category, last_fetched_at) VALUES (?, ?, ?, ?, ?, datetime('now'))`
+        )
+        .run(url, url, null, null, '');
+      added++;
+    } catch {
+      errors.push(url);
+    }
+  }
+
+  return { added, skipped, errors };
+}
+
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }

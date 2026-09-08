@@ -118,8 +118,8 @@ export function IdeaBoardClient() {
                   ideas.map((idea) => {
                     const idx = colIdxOf(idea.status || 'idea');
                     return (
-                      <div key={idea.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
-                        <Link href={`/ideas/${idea.id}`} className="block text-sm font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
+                      <div key={idea.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3 hover:border-accent-300 dark:hover:border-accent-700 transition-colors">
+                        <Link href={`/ideas/${idea.id}`} className="block text-sm font-medium text-gray-900 dark:text-white hover:text-accent-600 dark:hover:text-accent-400">
                           {idea.title}
                         </Link>
                         {idea.next_step && (

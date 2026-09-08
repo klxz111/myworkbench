@@ -16,14 +16,14 @@ export function PageHeader({
   actions,
 }: {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200/80 dark:border-gray-800">
       <div>
         <h1 className="page-title">{title}</h1>
-        {description && <p className="page-sub">{description}</p>}
+        {description && <div className="page-sub">{description}</div>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
@@ -80,12 +80,12 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   active: { label: '活跃', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
   draft: { label: '草稿', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
   archived: { label: '已归档', cls: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
-  todo: { label: '待办', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  todo: { label: '待办', cls: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300' },
   doing: { label: '进行中', cls: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' },
   done: { label: '已完成', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
   idea: { label: '想法', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
   exploring: { label: '调研中', cls: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300' },
-  validating: { label: '验证中', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  validating: { label: '验证中', cls: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300' },
   adopted: { label: '已立项', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
   shelved: { label: '已搁置', cls: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' },
 };
@@ -99,7 +99,7 @@ const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
   strategy: { label: '策略', cls: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
   decision: { label: '决策', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
   research: { label: '研究', cls: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300' },
-  evidence: { label: '证据', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  evidence: { label: '证据', cls: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300' },
   project: { label: '项目', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' },
   experiment: { label: '实验', cls: 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300' },
   belief: { label: '信念', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
@@ -108,7 +108,7 @@ const TYPE_BADGE: Record<string, { label: string; cls: string }> = {
   radar: { label: '雷达', cls: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
   capital: { label: '资本', cls: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
   profile: { label: '档案', cls: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300' },
-  task: { label: '任务', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  task: { label: '任务', cls: 'bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300' },
   event: { label: '事件', cls: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
   organization: { label: '组织', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' },
 };
@@ -137,7 +137,7 @@ export interface DatedEntry {
 }
 
 const KIND_COLORS: Record<string, string> = {
-  task: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+  task: 'bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300',
   gate: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
   followup: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
   deadline: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',

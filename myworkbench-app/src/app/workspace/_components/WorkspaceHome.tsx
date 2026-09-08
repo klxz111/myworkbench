@@ -191,13 +191,13 @@ export function WorkspaceHome() {
                   <li key={file.path}>
                     <Link
                       href={`/workspace/${file.path}`}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                      className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-accent-300 dark:hover:border-accent-700 transition-colors"
                     >
                       <span className="flex-1 min-w-0">
                         <span className="block truncate text-sm font-medium text-gray-900 dark:text-white">{file.name}</span>
                         <span className="block text-xs text-gray-400 mt-0.5">{relativeTime(file.mtime)} · 约 {file.words} 字</span>
                       </span>
-                      <span className="shrink-0 text-xs text-blue-600 dark:text-blue-400">继续 →</span>
+                      <span className="shrink-0 text-xs text-accent-600 dark:text-accent-400">继续 →</span>
                     </Link>
                   </li>
                 ))}
@@ -217,7 +217,7 @@ export function WorkspaceHome() {
               {(stats?.active7d || []).map((day) => (
                 <div key={day.date} className="flex-1 flex flex-col items-center gap-1" title={`${day.date}：${day.count} 个文件更新`}>
                   <div
-                    className={`w-full rounded-t ${day.count > 0 ? 'bg-blue-500' : 'bg-gray-100 dark:bg-gray-800'}`}
+                    className={`w-full rounded-t ${day.count > 0 ? 'bg-accent-500' : 'bg-gray-100 dark:bg-gray-800'}`}
                     style={{ height: `${Math.max(6, (day.count / maxActive) * 100)}%` }}
                   />
                   <span className="text-[10px] text-gray-400">{day.date.slice(8)}</span>
@@ -286,7 +286,7 @@ export function WorkspaceHome() {
                         </p>
                         <Link
                           href={`/workspace/${todo.file}`}
-                          className="mt-0.5 inline-block text-[11px] text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                          className="mt-0.5 inline-block text-[11px] text-gray-400 hover:text-accent-600 dark:hover:text-accent-400"
                         >
                           {todo.file.split('/').pop()} →
                         </Link>

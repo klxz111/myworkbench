@@ -134,7 +134,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
             required
           />
         </div>
@@ -144,7 +144,7 @@ export function EventEditClient({ id }: EventEditProps) {
           <select
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           >
             <option value="active">活跃</option>
             <option value="draft">草稿</option>
@@ -158,7 +158,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.tags}
             onChange={(e) => setForm({ ...form, tags: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -168,7 +168,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="date"
             value={form.event_date}
             onChange={(e) => setForm({ ...form, event_date: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -177,7 +177,7 @@ export function EventEditClient({ id }: EventEditProps) {
           <select
             value={form.recurrence}
             onChange={(e) => setForm({ ...form, recurrence: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           >
             <option value="">不重复</option>
             <option value="daily">每天</option>
@@ -196,7 +196,7 @@ export function EventEditClient({ id }: EventEditProps) {
               type="date"
               value={form.recurrence_until}
               onChange={(e) => setForm({ ...form, recurrence_until: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
         )}
@@ -207,7 +207,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -217,7 +217,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.event_type}
             onChange={(e) => setForm({ ...form, event_type: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -227,7 +227,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.linked_strategies}
             onChange={(e) => setForm({ ...form, linked_strategies: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -237,7 +237,7 @@ export function EventEditClient({ id }: EventEditProps) {
             type="text"
             value={form.linked_decisions}
             onChange={(e) => setForm({ ...form, linked_decisions: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 
@@ -247,7 +247,7 @@ export function EventEditClient({ id }: EventEditProps) {
             value={form.content}
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             rows={6}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
 

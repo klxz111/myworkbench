@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Opportunity {
   id: string;
@@ -11,6 +10,7 @@ interface Opportunity {
   status: string;
   tags: string[];
   updated_at: string;
+  created_at: string;
   content: string;
   category?: string;
   timeframe?: string;
@@ -63,43 +63,17 @@ export function OpportunityDetailClient({ id }: OpportunityDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到机会'}</p>
-        <Link href="/opportunity" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回机会列表</Link>
+        <Link href="/opportunity" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">← 返回机会列表</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{opportunity.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              {opportunity.category && <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-xs">{opportunity.category}</span>}
-              {opportunity.confidence && <span>置信度：{opportunity.confidence}</span>}
-              {opportunity.timeframe && <span>时间框架：{opportunity.timeframe}</span>}
-              {opportunity.expected_value && <span>预期价值：{opportunity.expected_value}</span>}
-              <span>更新：{new Date(opportunity.updated_at).toLocaleDateString()}</span>
-            </div>
-            {opportunity.tags && opportunity.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {opportunity.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/entities/opportunity/${id}/edit`} className="btn-primary">编辑</Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
-          </div>
-        </div>
-      </div>
-
-      <MarkdownViewer entityType="opportunity" id={id} />
-      <BacklinksSection entityType="opportunity" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/opportunity" className="btn-secondary">← 返回机会列表</Link>
-      </div>
-    </div>
+    <DetailShell entityType="opportunity" id={id} title={opportunity.title} status={opportunity.status}
+      tags={opportunity.tags || []} created_at={opportunity.created_at || ''} updated_at={opportunity.updated_at}
+      listPath="/opportunity" editHref={`/entities/opportunity/${id}/edit`} onDelete={handleDelete} deleting={deleting}
+      frontmatter={opportunity as unknown as Record<string, unknown>}>
+      {/* 暂无专属字段区块 */}
+    </DetailShell>
   );
 }

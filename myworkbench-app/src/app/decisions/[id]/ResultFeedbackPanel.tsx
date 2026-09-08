@@ -191,7 +191,7 @@ export function ResultFeedbackPanel({
             <select
               value={form.verdict}
               onChange={(e) => setForm({ ...form, verdict: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white text-sm"
             >
               {VERDICT_OPTIONS.map((v) => (
                 <option key={v.value} value={v.value}>{v.label}</option>
@@ -208,7 +208,7 @@ export function ResultFeedbackPanel({
               value={form.actual_result}
               onChange={(e) => setForm({ ...form, actual_result: e.target.value })}
               placeholder="决策执行后的实际结果是什么？与预期结果（expected_outcome）对比如何？"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white text-sm"
             />
           </div>
 
@@ -221,7 +221,7 @@ export function ResultFeedbackPanel({
               value={form.belief_update}
               onChange={(e) => setForm({ ...form, belief_update: e.target.value })}
               placeholder="基于该结果，对相关信念应作何修正？"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white text-sm"
             />
           </div>
 
@@ -244,11 +244,11 @@ export function ResultFeedbackPanel({
                       type="checkbox"
                       checked={selected.has(b.id)}
                       onChange={() => toggleBelief(b.id)}
-                      className="h-4 w-4 text-blue-600"
+                      className="h-4 w-4 text-accent-600"
                     />
                     <span className="text-sm text-gray-900 dark:text-gray-200">{b.title}</span>
                     {b.linked && (
-                      <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">已关联</span>
+                      <span className="ml-auto text-xs text-accent-600 dark:text-accent-400">已关联</span>
                     )}
                   </label>
                 ))}
@@ -261,7 +261,7 @@ export function ResultFeedbackPanel({
               type="checkbox"
               checked={form.create_evidence}
               onChange={(e) => setForm({ ...form, create_evidence: e.target.checked })}
-              className="h-4 w-4 text-blue-600"
+              className="h-4 w-4 text-accent-600"
             />
             同时创建「结果证据」实体（关联所选信念与本决策）
           </label>

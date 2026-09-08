@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Strategy {
   id: string;
   title: string;
   status: string;
   tags: string[];
+  created_at: string;
   updated_at: string;
   content: string;
   vision?: string;
@@ -63,34 +63,26 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到策略'}</p>
-        <Link href="/strategy" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回策略列表</Link>
+        <Link href="/strategy" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">← 返回策略列表</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{strategy.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${strategy.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>{strategy.status}</span>
-              <span>更新：{new Date(strategy.updated_at).toLocaleDateString()}</span>
-            </div>
-            {strategy.tags && strategy.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {strategy.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/entities/strategy/${id}/edit`} className="btn-primary">编辑</Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
-          </div>
-        </div>
-      </div>
-
+    <DetailShell
+      entityType="strategy"
+      id={id}
+      title={strategy.title}
+      status={strategy.status}
+      tags={strategy.tags || []}
+      created_at={strategy.created_at}
+      updated_at={strategy.updated_at}
+      listPath="/strategy"
+      editHref={`/entities/strategy/${id}/edit`}
+      onDelete={handleDelete}
+      deleting={deleting}
+      frontmatter={strategy as unknown as Record<string, unknown>}
+    >
       {strategy.vision && (
         <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">愿景</h3>
@@ -136,13 +128,6 @@ export function StrategyDetailClient({ id }: StrategyDetailProps) {
           </ul>
         </section>
       )}
-
-      <MarkdownViewer entityType="strategy" id={id} />
-      <BacklinksSection entityType="strategy" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/strategy" className="btn-secondary">← 返回策略列表</Link>
-      </div>
-    </div>
+    </DetailShell>
   );
 }

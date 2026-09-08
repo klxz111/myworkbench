@@ -16,7 +16,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 const NODE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  evidence: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900' },
+  evidence: { bg: 'bg-accent-50', border: 'border-accent-200', text: 'text-accent-900' },
   belief: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900' },
   decision: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900' },
   project: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-900' },

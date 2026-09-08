@@ -94,7 +94,7 @@ export function GenericDetailClient({ entityType, id }: GenericDetailProps) {
         <p className="text-red-800 dark:text-red-200">{error || '未找到该条目'}</p>
         <Link
           href={TYPE_LIST_PATHS[entityType] || `/${entityType}s`}
-          className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline"
+          className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline"
         >
           ← 返回列表
         </Link>

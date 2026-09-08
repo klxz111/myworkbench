@@ -104,7 +104,7 @@ export function DailyClient() {
               onClick={() => setSelectedPath(today)}
               className={`w-full text-left px-3 py-2 rounded text-sm ${
                 selectedPath === today
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  ? 'bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -114,7 +114,7 @@ export function DailyClient() {
             <button
               onClick={createToday}
               disabled={creating}
-              className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
+              className="w-full px-3 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm"
             >
               {creating ? '创建中...' : '创建今日笔记'}
             </button>
@@ -133,7 +133,7 @@ export function DailyClient() {
                     onClick={() => setSelectedPath(n.path)}
                     className={`w-full text-left px-3 py-1.5 rounded text-sm ${
                       selectedPath === n.path
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        ? 'bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                   >

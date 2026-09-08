@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Research {
   id: string;
   title: string;
   status: string;
   tags: string[];
+  created_at: string;
   updated_at: string;
   content: string;
   summary?: string;
@@ -64,35 +64,26 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到研究'}</p>
-        <Link href="/research" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回研究列表</Link>
+        <Link href="/research" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">← 返回研究列表</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{research.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${research.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>{research.status}</span>
-              {research.confidence && <span>置信度：{research.confidence}</span>}
-              <span>更新：{new Date(research.updated_at).toLocaleDateString()}</span>
-            </div>
-            {research.tags && research.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {research.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/entities/research/${id}/edit`} className="btn-primary">编辑</Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
-          </div>
-        </div>
-      </div>
-
+    <DetailShell
+      entityType="research"
+      id={id}
+      title={research.title}
+      status={research.status}
+      tags={research.tags || []}
+      created_at={research.created_at}
+      updated_at={research.updated_at}
+      listPath="/research"
+      editHref={`/entities/research/${id}/edit`}
+      onDelete={handleDelete}
+      deleting={deleting}
+      frontmatter={research as unknown as Record<string, unknown>}
+    >
       {research.knowledge_tree && research.knowledge_tree.length > 0 && (
         <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">知识树定位</h3>
@@ -100,7 +91,7 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
             {research.knowledge_tree.map((name) => (
               <Link
                 key={name}
-                href="/knowledge"
+                href="/graph?view=knowledge"
                 className="px-2.5 py-1 rounded-full text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/60"
               >
                 {name}
@@ -108,7 +99,7 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
             ))}
           </div>
           <p className="mt-2 text-xs text-gray-400">
-            在「<Link href="/knowledge" className="text-blue-600 dark:text-blue-400 hover:underline">知识树</Link>」页可查看这些方向在智源热度版图中的位置
+            在「<Link href="/graph?view=knowledge" className="text-accent-600 dark:text-accent-400 hover:underline">知识树</Link>」页可查看这些方向在智源热度版图中的位置
           </p>
         </section>
       )}
@@ -142,13 +133,6 @@ export function ResearchDetailClient({ id }: ResearchDetailProps) {
           </ul>
         </section>
       )}
-
-      <MarkdownViewer entityType="research" id={id} />
-      <BacklinksSection entityType="research" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/research" className="btn-secondary">← 返回研究列表</Link>
-      </div>
-    </div>
+    </DetailShell>
   );
 }

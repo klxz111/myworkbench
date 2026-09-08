@@ -121,7 +121,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
               type="text"
               value={formData[field.key] as string || ''}
               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             />
           )}
 
@@ -130,7 +130,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
               type="date"
               value={formData[field.key] as string || ''}
               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             />
           )}
 
@@ -145,7 +145,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
                   [field.key]: e.target.value === '' ? '' : Number(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             />
           )}
 
@@ -162,7 +162,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
               rows={4}
               value={formData[field.key] as string || ''}
               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             />
           )}
 
@@ -184,7 +184,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
                 })
               }
               placeholder="逗号分隔，如：持续学习, AI 系统与硬件"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             />
           )}
 
@@ -192,7 +192,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
             <select
               value={formData[field.key] as string || ''}
               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
             >
                <option value="">请选择...</option>
               {field.options.map((opt) => (
@@ -227,7 +227,7 @@ export function EntityForm({ type, initialData, onSuccess, onCancel }: EntityFor
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                    placeholder="添加标签..."
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-500 dark:bg-gray-800 dark:text-white"
                 />
                 <button
                   type="button"

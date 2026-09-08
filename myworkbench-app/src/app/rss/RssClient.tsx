@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { PageHeader, EmptyState } from '@/components/ui';
 import { buildPaperNote } from '@/lib/paper-note';
@@ -73,6 +73,7 @@ export function RssClient() {
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [catFilter, setCatFilter] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [newUrl, setNewUrl] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -144,6 +145,91 @@ export function RssClient() {
     setToast(text);
     window.setTimeout(() => setToast(null), 2500);
   };
+
+  const handleExportOpml = useCallback(async () => {
+    try {
+      const res = await fetch('/api/rss/opml');
+      if (!res.ok) throw new Error('导出失败');
+      const xml = await res.text();
+      const blob = new Blob([xml], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `myworkbench-rss-${new Date().toISOString().slice(0, 10)}.opml`;
+      a.click();
+      URL.revokeObjectURL(url);
+      flash('OPML 导出成功 ✓');
+    } catch {
+      alert('导出失败');
+    }
+  }, [flash]);
+
+  const handleImportOpml = useCallback(async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.opml,.xml';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        const xml = await file.text();
+        const res = await fetch('/api/rss/opml', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ xml }),
+        });
+        if (!res.ok) throw new Error('导入失败');
+        const result = await res.json();
+        flash(`导入完成：新增 ${result.added} 个，跳过 ${result.skipped} 个${result.errors?.length ? `，失败 ${result.errors.length} 个` : ''}`);
+        await loadFeeds();
+        await loadEntries();
+      } catch {
+        alert('导入失败');
+      }
+    };
+    input.click();
+  }, [flash, loadFeeds, loadEntries]);
+
+  const handleDiscover = useCallback(async () => {
+    const url = window.prompt('输入网站首页地址（如 https://example.com），自动发现 RSS 源：');
+    if (!url) return;
+    setDiscovering(true);
+    try {
+      const res = await fetch(`/api/rss/discover?url=${encodeURIComponent(url)}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '发现失败');
+      }
+      const data = await res.json();
+      if (data.feeds && data.feeds.length > 0) {
+        const choices = data.feeds.map((f: { url: string; title: string }, i: number) => `${i + 1}. ${f.title} (${f.url})`).join('\n');
+        const choice = window.prompt(`发现 ${data.feeds.length} 个订阅源：\n\n${choices}\n\n输入序号订阅：`);
+        const index = choice ? parseInt(choice, 10) - 1 : -1;
+        if (index >= 0 && index < data.feeds.length) {
+          const feed = data.feeds[index];
+          const res = await fetch('/api/rss/feeds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: feed.url }),
+          });
+          if (res.ok) {
+            flash('订阅添加成功 ✓');
+            await loadFeeds();
+            await loadEntries();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            alert(err.error || '添加失败');
+          }
+        }
+      } else {
+        alert('未发现 RSS/Atom 源');
+      }
+    } catch {
+      alert('发现失败');
+    } finally {
+      setDiscovering(false);
+    }
+  }, [flash, loadFeeds, loadEntries]);
 
   const handleAdd = async () => {
     const url = newUrl.trim();
@@ -307,6 +393,15 @@ export function RssClient() {
         description="信号源聚合在这里；值得留证的条目一键存入证据链"
         actions={
           <>
+            <button onClick={handleDiscover} disabled={discovering} className="btn-secondary">
+              {discovering ? '发现中...' : '自动发现'}
+            </button>
+            <button onClick={handleExportOpml} className="btn-secondary">
+              导出 OPML
+            </button>
+            <button onClick={handleImportOpml} className="btn-secondary">
+              导入 OPML
+            </button>
             <button onClick={handleRefresh} disabled={refreshing} className="btn-secondary">
               {refreshing ? '刷新中...' : '立即刷新'}
             </button>
@@ -370,13 +465,13 @@ export function RssClient() {
                       onClick={() => setSelectedFeed(null)}
                       className={`w-full flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
                         selectedFeed === null
-                          ? 'text-blue-700 dark:text-blue-300 font-medium'
+                          ? 'text-accent-700 dark:text-accent-300 font-medium'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                       }`}
                     >
                       <span className="flex-1">全部</span>
                       {totalUnread > 0 && (
-                        <span className="badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                        <span className="badge bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300">
                           {totalUnread}
                         </span>
                       )}
@@ -399,7 +494,7 @@ export function RssClient() {
                                 onClick={() => setSelectedFeed(feed.id)}
                                 className={`flex-1 min-w-0 flex items-center gap-2 px-1 py-2 rounded text-sm text-left transition-colors ${
                                   selectedFeed === feed.id
-                                    ? 'text-blue-700 dark:text-blue-300 font-medium'
+                                    ? 'text-accent-700 dark:text-accent-300 font-medium'
                                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                                 }`}
                                 title={feed.last_error ? `上次抓取出错：${feed.last_error}` : feed.url}
@@ -412,7 +507,7 @@ export function RssClient() {
                                   />
                                 )}
                                 {feed.unread > 0 && (
-                                  <span className="badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                  <span className="badge bg-accent-100 text-accent-700 dark:bg-accent-900/40 dark:text-accent-300">
                                     {feed.unread}
                                   </span>
                                 )}
@@ -420,7 +515,7 @@ export function RssClient() {
                               <button
                                 onClick={() => cycleCategory(feed)}
                                 title="点击切换分类"
-                                className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/40 dark:hover:text-blue-300"
+                                className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-accent-50 hover:text-accent-700 dark:hover:bg-accent-900/40 dark:hover:text-accent-300"
                               >
                                 {categoryLabel(feed.category)}
                               </button>
@@ -457,7 +552,7 @@ export function RssClient() {
                   onClick={() => setUnreadOnly(opt.key)}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                     unreadOnly === opt.key
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-accent-600 text-white'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
@@ -473,7 +568,7 @@ export function RssClient() {
                     onClick={() => setCatFilter(opt.key)}
                     className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                       catFilter === opt.key
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-accent-600 text-white'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
@@ -514,7 +609,7 @@ export function RssClient() {
                   return (
                     <li key={entry.id} className={`p-4 transition-colors ${isRead ? 'opacity-60' : ''}`}>
                       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
-                        {!isRead && <span className="mt-2 shrink-0 h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden="true" />}
+                        {!isRead && <span className="mt-2 shrink-0 h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden="true" />}
                         <div className="min-w-[200px] flex-1">
                           <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-400 dark:text-gray-500">
                             <span className="max-w-full truncate">{entry.feed_title}</span>
@@ -526,7 +621,7 @@ export function RssClient() {
                               href={entry.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`mt-0.5 block text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 ${
+                              className={`mt-0.5 block text-sm font-medium hover:text-accent-600 dark:hover:text-accent-400 ${
                                 isRead ? 'text-gray-600 dark:text-gray-300' : 'text-gray-900 dark:text-white'
                               }`}
                             >
@@ -540,6 +635,13 @@ export function RssClient() {
                           )}
                         </div>
                         <div className="ml-auto flex items-center gap-1">
+                          <Link
+                            href={`/rss/read/${entry.id}`}
+                            className="px-2 py-1 rounded text-xs btn-ghost whitespace-nowrap"
+                            title="阅读全文"
+                          >
+                            阅读
+                          </Link>
                           <button
                             onClick={() => toggleRead(entry)}
                             className="px-2 py-1 rounded text-xs btn-ghost whitespace-nowrap"
@@ -579,7 +681,7 @@ export function RssClient() {
 
           <p className="px-1 text-xs text-gray-400 dark:text-gray-500">
             订阅数据是网络缓存：存在本地数据库，不进入 Markdown 库与导出包；打开本页会自动刷新超过 30 分钟没更新的源。已存为证据的条目可在{' '}
-            <Link href="/evidence" className="text-blue-600 dark:text-blue-400 hover:underline">
+            <Link href="/evidence" className="text-accent-600 dark:text-accent-400 hover:underline">
               证据
             </Link>{' '}
             页找到（标签 rss）。

@@ -129,7 +129,7 @@ export function ReviewClient() {
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${VERDICT_BADGE[d.verdict_label] || VERDICT_BADGE['待定']}`}>
                     {d.verdict_label}
                   </span>
-                  <Link href={`/decisions/${d.id}`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                  <Link href={`/decisions/${d.id}`} className="text-sm text-accent-600 dark:text-accent-400 hover:underline">
                     {d.title}
                   </Link>
                 </li>

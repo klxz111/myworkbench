@@ -72,7 +72,7 @@ export function InsightsContent() {
             <Link
               key={c.type}
               href={c.href}
-              className="badge bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/40 dark:hover:text-blue-300"
+              className="badge bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-accent-50 hover:text-accent-700 dark:hover:bg-accent-900/40 dark:hover:text-accent-300"
             >
               {c.label} {c.count}
             </Link>

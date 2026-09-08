@@ -125,6 +125,36 @@ export function setIdentity(identity: IdentityPrefs): void {
   writeJson(IDENTITY_KEY, identity);
 }
 
+export interface StarredEntity {
+  type: string;
+  id: string;
+}
+
+const STARRED_KEY = 'mwbench_starred_entities';
+
+/* ---------- 星标实体 ---------- */
+
+export function getStarredEntities(): StarredEntity[] {
+  const list = readJson<StarredEntity[]>(STARRED_KEY, []);
+  if (!Array.isArray(list)) return [];
+  return list.filter((s) => s && typeof s.type === 'string' && typeof s.id === 'string');
+}
+
+export function isStarred(type: string, id: string): boolean {
+  return getStarredEntities().some((s) => s.type === type && s.id === id);
+}
+
+export function toggleStar(type: string, id: string): void {
+  const current = getStarredEntities();
+  const idx = current.findIndex((s) => s.type === type && s.id === id);
+  if (idx >= 0) {
+    current.splice(idx, 1);
+  } else {
+    current.push({ type, id });
+  }
+  writeJson(STARRED_KEY, current.slice(0, 100));
+}
+
 /* ---------- 编辑器默认模式 ---------- */
 
 export function getEditorMode(): EditorModePref {

@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { MarkdownViewer } from '@/components/MarkdownViewer';
-import { BacklinksSection } from '@/components/BacklinksSection';
+import { DetailShell } from '@/components/DetailShell';
 
 interface Evidence {
   id: string;
   title: string;
   status: string;
   tags: string[];
+  created_at: string;
   updated_at: string;
   content: string;
   source_type?: string;
@@ -64,49 +64,32 @@ export function EvidenceDetailClient({ id }: EvidenceDetailProps) {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
         <p className="text-red-800 dark:text-red-200">{error || '未找到证据'}</p>
-        <Link href="/evidence" className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:underline">← 返回证据列表</Link>
+        <Link href="/evidence" className="mt-4 inline-block text-accent-600 dark:text-accent-400 hover:underline">← 返回证据列表</Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{evidence.title}</h2>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              {evidence.source_type && <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs">{evidence.source_type}</span>}
-              {evidence.confidence && <span>置信度：{evidence.confidence}</span>}
-              {evidence.date && <span>日期：{evidence.date}</span>}
-              <span>更新：{new Date(evidence.updated_at).toLocaleDateString()}</span>
-            </div>
-            {evidence.tags && evidence.tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {evidence.tags.map((tag) => <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">{tag}</span>)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Link href={`/entities/evidence/${id}/edit`} className="btn-primary">编辑</Link>
-            <button onClick={handleDelete} disabled={deleting} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">{deleting ? '删除中...' : '删除'}</button>
-          </div>
-        </div>
-      </div>
-
+    <DetailShell
+      entityType="evidence"
+      id={id}
+      title={evidence.title}
+      status={evidence.status}
+      tags={evidence.tags || []}
+      created_at={evidence.created_at}
+      updated_at={evidence.updated_at}
+      listPath="/evidence"
+      editHref={`/entities/evidence/${id}/edit`}
+      onDelete={handleDelete}
+      deleting={deleting}
+      frontmatter={evidence as unknown as Record<string, unknown>}
+    >
       {evidence.source_url && (
         <section className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">来源链接</h3>
-          <a href={evidence.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline break-all">{evidence.source_url}</a>
+          <a href={evidence.source_url} target="_blank" rel="noopener noreferrer" className="text-accent-600 dark:text-accent-400 hover:underline break-all">{evidence.source_url}</a>
         </section>
       )}
-
-      <MarkdownViewer entityType="evidence" id={id} />
-      <BacklinksSection entityType="evidence" entityId={id} />
-
-      <div className="flex gap-4">
-        <Link href="/evidence" className="btn-secondary">← 返回证据列表</Link>
-      </div>
-    </div>
+    </DetailShell>
   );
 }
